@@ -226,3 +226,6 @@ Route::get('/health', function () {
         'version' => '1.0.0',
     ]);
 })->name('health');
+
+Route::get('/test-supabase', [App\Http\Controllers\TestSupabaseController::class, 'test']);
+Route::post('/test-supabase-upload', [App\Http\Controllers\TestSupabaseController::class, 'testUpload']);
