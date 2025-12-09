@@ -18,8 +18,8 @@ trait ApiResponse
         return response()->json([
             'success' => true,
             'message' => $message,
-            'data' => $data,
-            'meta' => $this->getMeta(),
+            'data'    => $data,
+            'meta'    => $this->getMeta(),
         ], $code);
     }
 
@@ -44,8 +44,8 @@ trait ApiResponse
         return response()->json([
             'success' => false,
             'message' => $message,
-            'errors' => $errors,
-            'meta' => $this->getMeta(),
+            'errors'  => $errors,
+            'meta'    => $this->getMeta(),
         ], $code);
     }
 
@@ -92,30 +92,30 @@ trait ApiResponse
     protected function paginatedResponse(
         LengthAwarePaginator $paginator,
         string $message = 'Data retrieved successfully',
-        ? string $resourceClass = null
+        ?string $resourceClass = null
     ): JsonResponse {
         $items = $resourceClass
             ? $resourceClass::collection($paginator->items())->resolve()
             : $paginator->items();
 
         return response()->json([
-            'success' => true,
-            'message' => $message,
-            'data' => $items,
+            'success'    => true,
+            'message'    => $message,
+            'data'       => $items,
             'pagination' => [
-                'current_page' => $paginator->currentPage(),
-                'last_page' => $paginator->lastPage(),
-                'per_page' => $paginator->perPage(),
-                'total' => $paginator->total(),
-                'from' => $paginator->firstItem(),
-                'to' => $paginator->lastItem(),
+                'current_page'   => $paginator->currentPage(),
+                'last_page'      => $paginator->lastPage(),
+                'per_page'       => $paginator->perPage(),
+                'total'          => $paginator->total(),
+                'from'           => $paginator->firstItem(),
+                'to'             => $paginator->lastItem(),
                 'has_more_pages' => $paginator->hasMorePages(),
             ],
             'links' => [
                 'first' => $paginator->url(1),
-                'last' => $paginator->url($paginator->lastPage()),
-                'prev' => $paginator->previousPageUrl(),
-                'next' => $paginator->nextPageUrl(),
+                'last'  => $paginator->url($paginator->lastPage()),
+                'prev'  => $paginator->previousPageUrl(),
+                'next'  => $paginator->nextPageUrl(),
             ],
             'meta' => $this->getMeta(),
         ]);
@@ -127,8 +127,34 @@ trait ApiResponse
     private function getMeta(): array
     {
         return [
-            'timestamp' => now()->toISOString(),
+            'timestamp'  => now()->toISOString(),
             'request_id' => request()->header('X-Request-ID', (string) \Illuminate\Support\Str::uuid()),
         ];
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Alias pendek (biar kode lama yang pakai success()/error() tetap jalan)
+    |--------------------------------------------------------------------------
+    */
+
+    protected function success(mixed $data = null, string $message = 'Success', int $code = 200): JsonResponse
+    {
+        return $this->successResponse($data, $message, $code);
+    }
+
+    protected function created(mixed $data = null, string $message = 'Created successfully'): JsonResponse
+    {
+        return $this->createdResponse($data, $message);
+    }
+
+    protected function error(string $message = 'Error', mixed $errors = null, int $code = 400): JsonResponse
+    {
+        return $this->errorResponse($message, $code, $errors);
+    }
+
+    protected function paginated(LengthAwarePaginator $paginator, string $message = 'Data retrieved successfully', ?string $resourceClass = null): JsonResponse
+    {
+        return $this->paginatedResponse($paginator, $message, $resourceClass);
     }
 }
