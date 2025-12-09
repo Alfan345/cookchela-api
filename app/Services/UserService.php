@@ -66,41 +66,67 @@ class UserService
      * Update user profile
      */
     public function updateProfile(User $user, array $data, ? UploadedFile $avatar = null): array
-    {
-        $updateData = [];
+{
+    $updateData = [];
 
-        if (isset($data['name'])) {
-            $updateData['name'] = $data['name'];
-        }
+    // Logging input data
+    \Log::info("[UserService] updateProfile input", $data);
 
-        if (isset($data['username'])) {
-            $updateData['username'] = $data['username'];
-        }
-
-        if ($avatar) {
-            $avatarPath = $this->uploadAvatar($user, $avatar);
-            $updateData['avatar'] = $avatarPath;
-        }
-
-        if (! empty($updateData)) {
-            $user->update($updateData);
-            $user->refresh();
-        }
-
-        return $this->getCurrentUserProfile($user);
+    // Handle name update
+    if (isset($data['name'])) {
+        $updateData['name'] = $data['name'];
     }
 
-    /**
-     * Upload avatar to storage
-     */
-    private function uploadAvatar(User $user, UploadedFile $file): string
+    // Handle username update
+    if (isset($data['username'])) {
+        $updateData['username'] = $data['username'];
+    }
+
+    // Handle avatar upload
+    if ($avatar) {
+        try {
+            \Log::info("[UserService] uploadAvatar run for user {$user->id}");
+            $avatarPath = $this->uploadAvatar($user, $avatar);
+            $updateData['avatar'] = $avatarPath;
+            \Log::info("[UserService] uploadAvatar success", ['avatar' => $avatarPath]);
+        } catch (\Exception $e) {
+            \Log::error("[UserService] Gagal upload avatar: " . $e->getMessage());
+            // Jika ingin error ke user, bisa lempar exception ke controller (atau return error di response JSON)
+            throw new \Exception('Gagal upload avatar: ' . $e->getMessage(), 400);
+        }
+    }
+
+    // Logging data yang akan diupdate ke database
+    \Log::info("[UserService] user update data", $updateData);
+
+    if (! empty($updateData)) {
+        try {
+            $user->update($updateData);
+            $user->refresh();
+            \Log::info("[UserService] user updated!", ['id' => $user->id, 'updateData' => $updateData]);
+        } catch (\Exception $e) {
+            \Log::error("[UserService] user update DB gagal: " . $e->getMessage());
+            throw new \Exception('Gagal update data user: ' . $e->getMessage(), 400);
+        }
+    } else {
+        \Log::warning("[UserService] Tidak ada data yang diupdate untuk user {$user->id}");
+    }
+
+    return $this->getCurrentUserProfile($user);
+}
+
+/**
+ * Upload avatar to Supabase Storage
+ */
+private function uploadAvatar(User $user, UploadedFile $file): string
 {
     $filename = 'avatar_' . time() . '.' . $file->getClientOriginalExtension();
     $path = "{$user->id}/{$filename}";
     $bucket = config('services.supabase.bucket_avatars', 'avatars');
 
-    // Pakai service baru:
-    return SupabaseUploadService::upload($bucket, $path, $file);
+    \Log::info("[UserService] uploadAvatar: bucket {$bucket}, path {$path}");
+
+    return \App\Services\SupabaseUploadService::upload($bucket, $path, $file);
 }
 
     /**
