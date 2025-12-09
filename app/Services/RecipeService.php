@@ -6,6 +6,7 @@ use App\Models\Recipe;
 use App\Models\Like;
 use App\Models\Bookmark;
 use App\Models\User;
+use App\Services\SupabaseUploadService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
 

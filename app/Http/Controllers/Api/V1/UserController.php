@@ -34,15 +34,15 @@ class UserController extends Controller
      * PUT /user/profile
      */
     public function updateProfile(UpdateProfileRequest $request): JsonResponse
-    {
-        $profile = $this->userService->updateProfile(
-            $request->user(),
-            $request->validated(),
-            $request->file('avatar')
-        );
+{
+    $profile = $this->userService->updateProfile(
+        $request->user(),
+        $request->validated(),
+        $request->file('avatar')
+    );
 
-        return $this->successResponse($profile, 'Profil berhasil diperbarui');
-    }
+    return $this->successResponse($profile, 'Profil berhasil diperbarui');
+}
 
     /**
      * Update language preference

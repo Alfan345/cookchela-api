@@ -46,7 +46,7 @@ class CookingStep extends Model
         }
 
         $supabaseUrl = config('services.supabase. url');
-        $bucket = config('services. supabase.bucket_recipes', 'recipes');
+        $bucket = config('services.supabase.bucket_recipes', 'recipes');
 
         return "{$supabaseUrl}/storage/v1/object/public/{$bucket}/{$this->image}";
     }

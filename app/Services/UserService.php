@@ -7,6 +7,7 @@ use App\Models\Follow;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\UploadedFile;
+use App\Services\SupabaseUploadService;
 use Exception;
 
 class UserService
@@ -93,15 +94,14 @@ class UserService
      * Upload avatar to storage
      */
     private function uploadAvatar(User $user, UploadedFile $file): string
-    {
-        $filename = 'avatar_' . time() . '.' .  $file->getClientOriginalExtension();
-        $path = "{$user->id}/{$filename}";
+{
+    $filename = 'avatar_' . time() . '.' . $file->getClientOriginalExtension();
+    $path = "{$user->id}/{$filename}";
+    $bucket = config('services.supabase.bucket_avatars', 'avatars');
 
-        // Upload to Supabase storage or local
-        Storage::disk('supabase')->put($path, file_get_contents($file));
-
-        return $path;
-    }
+    // Pakai service baru:
+    return SupabaseUploadService::upload($bucket, $path, $file);
+}
 
     /**
      * Update user language preference
