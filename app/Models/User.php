@@ -57,8 +57,8 @@ class User extends Authenticatable
             return $this->avatar;
         }
 
-        $supabaseUrl = config('services.supabase. url');
-        $bucket = config('services. supabase.bucket_avatars', 'avatars');
+        $supabaseUrl = config('services.supabase.url');
+        $bucket = config('services.supabase.bucket_avatars', 'avatars');
 
         return "{$supabaseUrl}/storage/v1/object/public/{$bucket}/{$this->avatar}";
     }
