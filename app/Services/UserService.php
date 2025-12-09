@@ -98,7 +98,7 @@ class UserService
         $path = "{$user->id}/{$filename}";
 
         // Upload to Supabase storage or local
-        Storage::disk('avatars')->put($path, file_get_contents($file));
+        Storage::disk('supabase')->put($path, file_get_contents($file));
 
         return $path;
     }
