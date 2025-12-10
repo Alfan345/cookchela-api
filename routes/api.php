@@ -1,13 +1,10 @@
 <?php
 
-<<<<<<< HEAD
-=======
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\RecipeController;
 use App\Http\Controllers\Api\V1\BookmarkController;
 use App\Http\Controllers\Api\V1\SearchController;
->>>>>>> origin/main
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\RecipeController;
@@ -44,7 +41,6 @@ Route::prefix('v1')->group(function () {
     });
 
     // ==========================================
-<<<<<<< HEAD
     // Recipes Routes (Public)
     // ==========================================
 
@@ -70,7 +66,7 @@ Route::prefix('v1')->group(function () {
             ->whereNumber('recipe');
         Route::delete('/recipes/{recipe}', [RecipeController::class, 'destroy'])
             ->whereNumber('recipe');
-=======
+
     // User Routes (Protected) - Current User
     // ==========================================
     Route::prefix('user')->middleware('auth:sanctum')->group(function () {
@@ -213,7 +209,6 @@ Route::prefix('v1')->group(function () {
         });
 
     });
->>>>>>> origin/main
 
         // Like / Unlike
         Route::post('/recipes/{recipe}/like', [RecipeLikeController::class, 'store'])
@@ -234,8 +229,6 @@ Route::get('/health', function () {
         'version'  => '1.0.0',
     ]);
 })->name('health');
-<<<<<<< HEAD
-=======
 
 Route::get('/test-supabase', [App\Http\Controllers\TestSupabaseController::class, 'test']);
 Route::post('/test-supabase-upload', [App\Http\Controllers\TestSupabaseController::class, 'testUpload']);
