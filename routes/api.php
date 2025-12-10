@@ -232,4 +232,3 @@ Route::get('/health', function () {
 
 Route::get('/test-supabase', [App\Http\Controllers\TestSupabaseController::class, 'test']);
 Route::post('/test-supabase-upload', [App\Http\Controllers\TestSupabaseController::class, 'testUpload']);
->>>>>>> origin/main
