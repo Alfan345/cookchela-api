@@ -4,10 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-<<<<<<< HEAD
-=======
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
->>>>>>> origin/main
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Recipe extends Model
@@ -24,9 +21,7 @@ class Recipe extends Model
         'likes_count',
         'bookmarks_count',
     ];
-
-<<<<<<< HEAD
-=======
+    
     protected $casts = [
         'cooking_time' => 'integer',
         'servings' => 'integer',
@@ -64,13 +59,11 @@ class Recipe extends Model
     /**
      * Recipe belongs to a user
      */
->>>>>>> origin/main
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-<<<<<<< HEAD
     public function ingredients(): HasMany
     {
         return $this->hasMany(Ingredient::class, 'recipe_id');
@@ -91,7 +84,7 @@ class Recipe extends Model
         return $this->hasMany(Bookmark::class, 'recipe_id');
     }
 }
-=======
+
     /**
      * Recipe has many ingredients
      */
@@ -142,4 +135,3 @@ class Recipe extends Model
             ->withPivot('created_at');
     }
 }
->>>>>>> origin/main
