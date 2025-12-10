@@ -6,8 +6,6 @@ use App\Http\Controllers\Api\V1\RecipeController;
 use App\Http\Controllers\Api\V1\BookmarkController;
 use App\Http\Controllers\Api\V1\SearchController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\V1\AuthController;
-use App\Http\Controllers\Api\V1\RecipeController;
 use App\Http\Controllers\Api\V1\UserRecipeController;
 use App\Http\Controllers\Api\V1\RecipeLikeController;
 
