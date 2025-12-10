@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'default' => env('FILESYSTEM_DISK', 'local'),
+    'default' => env('FILESYSTEM_DISK'),
 
     /*
     |--------------------------------------------------------------------------
@@ -59,6 +59,16 @@ return [
             'throw' => false,
             'report' => false,
         ],
+
+        'supabase' => [
+            'driver' => 's3',
+            'key' => env('SUPABASE_SERVICE_ROLE_KEY'),
+            'secret' => env('SUPABASE_SERVICE_ROLE_KEY'),
+            'region' => env('SUPABASE_STORAGE_REGION', 'ap-southeast-1'),
+            'bucket' => env('SUPABASE_BUCKET_AVATARS', 'avatars'),
+            'url' => env('SUPABASE_URL') . '/storage/v1',
+            'endpoint' => env('SUPABASE_STORAGE_URL') . '/storage/v1/s3',
+],
 
     ],
 

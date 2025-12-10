@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\Language;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -56,8 +57,8 @@ class User extends Authenticatable
             return $this->avatar;
         }
 
-        $supabaseUrl = config('services.supabase. url');
-        $bucket = config('services. supabase.bucket_avatars', 'avatars');
+        $supabaseUrl = config('services.supabase.url');
+        $bucket = config('services.supabase.bucket_avatars', 'avatars');
 
         return "{$supabaseUrl}/storage/v1/object/public/{$bucket}/{$this->avatar}";
     }
@@ -75,12 +76,65 @@ class User extends Authenticatable
         return $this->hasMany(Recipe::class);
     }
 
-    // TODO: Relationships berikut akan ditambahkan oleh tim terkait:
-    // - likes() -> Tim Recipe
-    // - bookmarks() -> Tim Bookmark
-    // - followers() -> Tim User/Profile
-    // - following() -> Tim User/Profile
-    // - searchHistories() -> Tim Search
+    /**
+     * User has many likes
+     */
+    public function likes(): HasMany
+    {
+        return $this->hasMany(Like::class);
+    }
+
+    /**
+     * Recipes that user has liked
+     */
+    public function likedRecipes(): BelongsToMany
+    {
+        return $this->belongsToMany(Recipe::class, 'likes', 'user_id', 'recipe_id')
+            ->withPivot('created_at');
+    }
+
+    /**
+     * User has many bookmarks
+     */
+    public function bookmarks(): HasMany
+    {
+        return $this->hasMany(Bookmark::class);
+    }
+
+    /**
+     * Recipes that user has bookmarked
+     */
+    public function bookmarkedRecipes(): BelongsToMany
+    {
+        return $this->belongsToMany(Recipe::class, 'bookmarks', 'user_id', 'recipe_id')
+            ->withPivot('created_at');
+    }
+
+    /**
+     * Users that this user is following
+     */
+    public function following(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'follows', 'follower_id', 'following_id')
+            ->withPivot('created_at');
+    }
+
+    /**
+     * Users that follow this user
+     */
+    public function followers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'follows', 'following_id', 'follower_id')
+            ->withPivot('created_at');
+    }
+
+    /**
+     * User has many search histories
+     */
+    public function searchHistories(): HasMany
+    {
+        return $this->hasMany(SearchHistory::class);
+    }
 
     // ==========================================
     // HELPER METHODS
@@ -101,4 +155,28 @@ class User extends Authenticatable
 
         return $username;
     }
+    /**
+     * Check if user is following another user
+     */
+    public function isFollowing(User $user): bool
+    {
+        return $this->following()->where('following_id', $user->id)->exists();
+    }
+
+    /**
+     * Check if user has liked a recipe
+     */
+    public function hasLiked(Recipe $recipe): bool
+    {
+        return $this->likes()->where('recipe_id', $recipe->id)->exists();
+    }
+
+    /**
+     * Check if user has bookmarked a recipe
+     */
+    public function hasBookmarked(Recipe $recipe): bool
+    {
+        return $this->bookmarks()->where('recipe_id', $recipe->id)->exists();
+    }
+    
 }
