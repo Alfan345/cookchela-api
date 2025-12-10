@@ -4,19 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+<<<<<<< HEAD
+=======
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+>>>>>>> origin/main
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-/**
- * Recipe Model
- * 
- * TODO: Model ini akan dilengkapi oleh tim Recipe
- * - Tambahkan relationships (ingredients, steps, likes, bookmarks)
- * - Tambahkan helper methods
- * - Tambahkan accessors/mutators
- */
 class Recipe extends Model
 {
+    protected $table = 'recipes';
+
     protected $fillable = [
         'user_id',
         'title',
@@ -28,6 +25,8 @@ class Recipe extends Model
         'bookmarks_count',
     ];
 
+<<<<<<< HEAD
+=======
     protected $casts = [
         'cooking_time' => 'integer',
         'servings' => 'integer',
@@ -65,11 +64,34 @@ class Recipe extends Model
     /**
      * Recipe belongs to a user
      */
+>>>>>>> origin/main
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+<<<<<<< HEAD
+    public function ingredients(): HasMany
+    {
+        return $this->hasMany(Ingredient::class, 'recipe_id');
+    }
+
+    public function steps(): HasMany
+    {
+        return $this->hasMany(CookingStep::class, 'recipe_id')->orderBy('step_number');
+    }
+
+    public function likes(): HasMany
+    {
+        return $this->hasMany(Like::class, 'recipe_id');
+    }
+
+    public function bookmarks(): HasMany
+    {
+        return $this->hasMany(Bookmark::class, 'recipe_id');
+    }
+}
+=======
     /**
      * Recipe has many ingredients
      */
@@ -120,3 +142,4 @@ class Recipe extends Model
             ->withPivot('created_at');
     }
 }
+>>>>>>> origin/main

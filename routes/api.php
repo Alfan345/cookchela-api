@@ -1,75 +1,76 @@
 <?php
 
+<<<<<<< HEAD
+=======
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\RecipeController;
 use App\Http\Controllers\Api\V1\BookmarkController;
 use App\Http\Controllers\Api\V1\SearchController;
+>>>>>>> origin/main
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\RecipeController;
+use App\Http\Controllers\Api\V1\UserRecipeController;
+use App\Http\Controllers\Api\V1\RecipeLikeController;
 
 /*
-|--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
-|
+| Prefix /api sudah otomatis dari RouteServiceProvider,
+| jadi di sini kita pakai prefix /v1 untuk versi API.
 */
 
-// ==========================================
-// API Version 1
-// ==========================================
 Route::prefix('v1')->group(function () {
 
     // ==========================================
     // Authentication Routes (Public)
     // ==========================================
     Route::prefix('auth')->group(function () {
-
-        // Register new user
-        Route::post('/register', [AuthController::class, 'register'])
-            ->name('auth.register');
-
-        // Login with email & password
-        Route::post('/login', [AuthController::class, 'login'])
-            ->name('auth.login');
-
-        // Login with Google OAuth
-        Route::post('/google', [AuthController::class, 'googleLogin'])
-            ->name('auth.google');
-
+        Route::post('/register', [AuthController::class, 'register'])->name('auth.register');
+        Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
+        Route::post('/google', [AuthController::class, 'googleLogin'])->name('auth.google');
     });
 
     // ==========================================
     // Authentication Routes (Protected)
     // ==========================================
     Route::prefix('auth')->middleware('auth:sanctum')->group(function () {
-
-        // Logout from current device
-        Route::post('/logout', [AuthController::class, 'logout'])
-            ->name('auth.logout');
-
-        // Logout from all devices
-        Route::post('/logout-all', [AuthController::class, 'logoutAll'])
-            ->name('auth.logout-all');
-
-        // Refresh token
-        Route::post('/refresh', [AuthController::class, 'refresh'])
-            ->name('auth.refresh');
-
-        // Check auth status
-        Route::get('/check', [AuthController::class, 'check'])
-            ->name('auth.check');
-
-        // Get current user
-        Route::get('/me', [AuthController::class, 'me'])
-            ->name('auth.me');
-
+        Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');
+        Route::post('/logout-all', [AuthController::class, 'logoutAll'])->name('auth.logout-all');
+        Route::post('/refresh', [AuthController::class, 'refresh'])->name('auth.refresh');
+        Route::get('/check', [AuthController::class, 'check'])->name('auth.check');
+        Route::get('/me', [AuthController::class, 'me'])->name('auth.me');
     });
 
     // ==========================================
+<<<<<<< HEAD
+    // Recipes Routes (Public)
+    // ==========================================
+
+    // Detail resep: auth optional untuk guest
+    Route::get('/recipes/{recipe}', [RecipeController::class, 'show'])
+        ->whereNumber('recipe');
+
+    // Daftar resep milik user tertentu (public)
+    Route::get('/users/{username}/recipes', [UserRecipeController::class, 'index']);
+
+    // ==========================================
+    // Recipes Routes (Protected)
+    // ==========================================
+    Route::middleware('auth:sanctum')->group(function () {
+
+        // Feed & Home sections (butuh auth)
+        Route::get('/recipes/timeline', [RecipeController::class, 'timeline']);
+        Route::get('/recipes/recommendations', [RecipeController::class, 'recommendations']);
+
+        // CRUD
+        Route::post('/recipes', [RecipeController::class, 'store']);
+        Route::put('/recipes/{recipe}', [RecipeController::class, 'update'])
+            ->whereNumber('recipe');
+        Route::delete('/recipes/{recipe}', [RecipeController::class, 'destroy'])
+            ->whereNumber('recipe');
+=======
     // User Routes (Protected) - Current User
     // ==========================================
     Route::prefix('user')->middleware('auth:sanctum')->group(function () {
@@ -212,20 +213,30 @@ Route::prefix('v1')->group(function () {
         });
 
     });
+>>>>>>> origin/main
 
+        // Like / Unlike
+        Route::post('/recipes/{recipe}/like', [RecipeLikeController::class, 'store'])
+            ->whereNumber('recipe');
+        Route::delete('/recipes/{recipe}/like', [RecipeLikeController::class, 'destroy'])
+            ->whereNumber('recipe');
+    });
 });
 
 // ==========================================
-// Health Check (untuk monitoring)
+// Health Check
 // ==========================================
 Route::get('/health', function () {
     return response()->json([
         'status' => 'ok',
         'timestamp' => now()->toISOString(),
-        'app' => config('app.name'),
-        'version' => '1.0.0',
+        'app'      => config('app.name'),
+        'version'  => '1.0.0',
     ]);
 })->name('health');
+<<<<<<< HEAD
+=======
 
 Route::get('/test-supabase', [App\Http\Controllers\TestSupabaseController::class, 'test']);
 Route::post('/test-supabase-upload', [App\Http\Controllers\TestSupabaseController::class, 'testUpload']);
+>>>>>>> origin/main

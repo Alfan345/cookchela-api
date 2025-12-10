@@ -7,6 +7,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CookingStep extends Model
 {
+<<<<<<< HEAD
+    protected $table = 'cooking_steps';
+
+=======
+>>>>>>> origin/main
     public $timestamps = false;
 
     protected $fillable = [
@@ -16,6 +21,13 @@ class CookingStep extends Model
         'image',
     ];
 
+<<<<<<< HEAD
+    public function recipe(): BelongsTo
+    {
+        return $this->belongsTo(Recipe::class, 'recipe_id');
+    }
+}
+=======
     protected $casts = [
         'step_number' => 'integer',
         'created_at' => 'datetime',
@@ -51,3 +63,4 @@ class CookingStep extends Model
         return "{$supabaseUrl}/storage/v1/object/public/{$bucket}/{$this->image}";
     }
 }
+>>>>>>> origin/main
