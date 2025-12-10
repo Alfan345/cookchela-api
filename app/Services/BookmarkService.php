@@ -15,7 +15,7 @@ class BookmarkService
      */
     public function getBookmarks(User $user, int $perPage = 10): LengthAwarePaginator
     {
-        $bookmarks = Bookmark::with(['recipe. user:id,name,username,avatar'])
+        $bookmarks = Bookmark::with(['recipe.user:id,name,username,avatar'])
             ->where('user_id', $user->id)
             ->latest('created_at')
             ->paginate($perPage);

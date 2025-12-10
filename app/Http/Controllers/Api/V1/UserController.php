@@ -34,7 +34,13 @@ class UserController extends Controller
      * PUT /user/profile
      */
     public function updateProfile(UpdateProfileRequest $request): JsonResponse
-{
+    {
+    \Log::info('[UserController] updateProfile request', [
+        'validated' => $request->validated(),
+        'has_file' => $request->hasFile('avatar'),
+        'file_size' => $request->hasFile('avatar') ? $request->file('avatar')->getSize() : null,
+    ]);
+
     $profile = $this->userService->updateProfile(
         $request->user(),
         $request->validated(),
@@ -42,7 +48,7 @@ class UserController extends Controller
     );
 
     return $this->successResponse($profile, 'Profil berhasil diperbarui');
-}
+    }
 
     /**
      * Update language preference

@@ -34,11 +34,11 @@ class UpdateProfileRequest extends FormRequest
             'name.min' => 'Nama minimal 2 karakter',
             'name.max' => 'Nama maksimal 100 karakter',
             'username.min' => 'Username minimal 3 karakter',
-            'username.max' => 'Username maksimal 50 karakter',
+            'username. max' => 'Username maksimal 50 karakter',
             'username.alpha_dash' => 'Username hanya boleh berisi huruf, angka, dash, dan underscore',
             'username.unique' => 'Username sudah digunakan',
-            'avatar. image' => 'Avatar harus berupa gambar',
-            'avatar. mimes' => 'Avatar harus berformat jpeg, png, jpg, atau webp',
+            'avatar.image' => 'Avatar harus berupa gambar',
+            'avatar.mimes' => 'Avatar harus berformat jpeg, png, jpg, atau webp',
             'avatar.max' => 'Ukuran avatar maksimal 2MB',
         ];
     }

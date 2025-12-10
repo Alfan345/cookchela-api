@@ -12,11 +12,6 @@ class IngredientCategory extends Model
     protected $fillable = [
         'name',
         'slug',
-<<<<<<< HEAD
-        'created_at',
-    ];
-
-=======
     ];
 
     protected $casts = [
@@ -29,13 +24,8 @@ class IngredientCategory extends Model
     /**
      * Category has many master ingredients
      */
->>>>>>> origin/main
     public function masterIngredients(): HasMany
     {
         return $this->hasMany(MasterIngredient::class, 'category_id');
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> origin/main

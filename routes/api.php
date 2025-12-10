@@ -6,10 +6,9 @@ use App\Http\Controllers\Api\V1\RecipeController;
 use App\Http\Controllers\Api\V1\BookmarkController;
 use App\Http\Controllers\Api\V1\SearchController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\V1\AuthController;
-use App\Http\Controllers\Api\V1\RecipeController;
 use App\Http\Controllers\Api\V1\UserRecipeController;
 use App\Http\Controllers\Api\V1\RecipeLikeController;
+
 
 /*
 | API Routes
@@ -76,13 +75,12 @@ Route::prefix('v1')->group(function () {
             ->name('user.profile');
 
         // Update current user profile
-        Route::put('/profile', [UserController::class, 'updateProfile'])
+        Route::match(['put', 'post'], '/profile', [UserController::class, 'updateProfile'])
             ->name('user.profile.update');
 
         // Update language preference
         Route::put('/language', [UserController::class, 'updateLanguage'])
             ->name('user.language.update');
-
     });
 
     // ==========================================
@@ -232,4 +230,3 @@ Route::get('/health', function () {
 
 Route::get('/test-supabase', [App\Http\Controllers\TestSupabaseController::class, 'test']);
 Route::post('/test-supabase-upload', [App\Http\Controllers\TestSupabaseController::class, 'testUpload']);
->>>>>>> origin/main

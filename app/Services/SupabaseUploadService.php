@@ -23,6 +23,8 @@ class SupabaseUploadService
 
         $endpoint = "{$supabaseUrl}/storage/v1/object/{$bucket}/{$path}";
 
+        \Log::info("[SupabaseUploadService] Uploading to:  {$endpoint}");
+        
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $serviceRoleKey,
             'apikey' => $serviceRoleKey,
@@ -31,7 +33,11 @@ class SupabaseUploadService
           ->post($endpoint);
 
         if (!$response->successful()) {
-            throw new \Exception('Gagal upload ke Supabase! ' . $response->body());
+            \Log::error("[SupabaseUploadService] Upload failed", [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+            throw new \Exception('Gagal upload file ke Supabase Storage: ' . $response->body());
         }
 
         // Return path yang disimpan, agar URL publik bisa diakses dengan accessor Model
