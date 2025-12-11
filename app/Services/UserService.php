@@ -269,4 +269,91 @@ class UserService
         ];
     }
 
+    /**
+     * Change user password
+     */
+    public function changePassword(User $user, string $currentPassword, string $newPassword): bool
+    {
+        // Verify current password
+        if (!\Hash::check($currentPassword, $user->password)) {
+            throw new \Exception('Password saat ini tidak sesuai', 400);
+        }
+
+        // Update password
+        $user->update([
+            'password' => \Hash::make($newPassword),
+        ]);
+
+        \Log::info("[UserService] Password changed for user {$user->id}");
+
+        return true;
+    }
+
+    /**
+     * Change user email
+     */
+    public function changeEmail(User $user, string $newEmail, string $password): bool
+    {
+        // Verify password
+        if (!\Hash::check($password, $user->password)) {
+            throw new \Exception('Password tidak sesuai', 400);
+        }
+
+        // Update email and reset verification
+        $user->update([
+            'email' => $newEmail,
+            'email_verified_at' => null, // Reset email verification
+        ]);
+
+        \Log::info("[UserService] Email changed for user {$user->id}");
+
+        // TODO: Send verification email ke email baru
+        // Mail::to($newEmail)->send(new VerifyEmail($user));
+
+        return true;
+    }
+
+    /**
+     * Delete user account
+     */
+    public function deleteAccount(User $user, string $password): bool
+    {
+        // Verify password
+        if (!\Hash::check($password, $user->password)) {
+            throw new \Exception('Password tidak sesuai', 400);
+        }
+
+        \Log::info("[UserService] Deleting account for user {$user->id}");
+
+        DB::transaction(function () use ($user) {
+            // Delete user's recipes (cascade akan handle ingredients, steps, dll)
+            $user->recipes()->delete();
+
+            // Delete user's likes
+            $user->likes()->delete();
+
+            // Delete user's bookmarks
+            $user->bookmarks()->delete();
+
+            // Delete user's follows (as follower)
+            Follow::where('follower_id', $user->id)->delete();
+
+            // Delete user's follows (as following)
+            Follow::where('following_id', $user->id)->delete();
+
+            // Delete user's search history
+            $user->searchHistories()->delete();
+
+            // Delete user's tokens (logout dari semua device)
+            $user->tokens()->delete();
+
+            // Finally, delete user
+            $user->delete();
+        });
+
+        \Log::info("[UserService] Account deleted successfully");
+
+        return true;
+    }
+
 }

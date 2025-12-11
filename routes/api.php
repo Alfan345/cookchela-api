@@ -75,12 +75,24 @@ Route::prefix('v1')->group(function () {
             ->name('user.profile');
 
         // Update current user profile
-        Route::match(['put', 'post'], '/profile', [UserController::class, 'updateProfile'])
-            ->name('user.profile.update');
+        Route::match(['put', 'post'], '/profile', [UserController:: class, 'updateProfile'])
+            ->name('user.profile. update');
 
         // Update language preference
         Route::put('/language', [UserController::class, 'updateLanguage'])
-            ->name('user.language.update');
+            ->name('user.language. update');
+
+        // Change password
+        Route::put('/password', [UserController::class, 'changePassword'])
+            ->name('user.password.change');
+
+        // Change email
+        Route::put('/email', [UserController::class, 'changeEmail'])
+            ->name('user.email.change');
+
+        // Delete account
+        Route::delete('/account', [UserController::class, 'deleteAccount'])
+            ->name('user.account.delete');
     });
 
     // ==========================================
