@@ -7,35 +7,28 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class IngredientCategory extends Model
 {
-    public $timestamps = false;
+    protected $table = 'ingredient_categories';
+
+    // Kita pakai created_at saja, tanpa updated_at
+    public $timestamps = true;
+    const CREATED_AT = 'created_at';
+    const UPDATED_AT = null;
 
     protected $fillable = [
         'name',
         'slug',
-<<<<<<< HEAD
         'created_at',
-    ];
-
-=======
     ];
 
     protected $casts = [
         'created_at' => 'datetime',
     ];
 
-    const CREATED_AT = 'created_at';
-    const UPDATED_AT = null;
-
     /**
      * Category has many master ingredients
      */
->>>>>>> origin/main
     public function masterIngredients(): HasMany
     {
         return $this->hasMany(MasterIngredient::class, 'category_id');
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> origin/main
