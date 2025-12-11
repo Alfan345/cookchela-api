@@ -64,33 +64,12 @@ class Recipe extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function ingredients(): HasMany
-    {
-        return $this->hasMany(Ingredient::class, 'recipe_id');
-    }
-
-    public function steps(): HasMany
-    {
-        return $this->hasMany(CookingStep::class, 'recipe_id')->orderBy('step_number');
-    }
-
-    public function likes(): HasMany
-    {
-        return $this->hasMany(Like::class, 'recipe_id');
-    }
-
-    public function bookmarks(): HasMany
-    {
-        return $this->hasMany(Bookmark::class, 'recipe_id');
-    }
-}
-
     /**
      * Recipe has many ingredients
      */
     public function ingredients(): HasMany
     {
-        return $this->hasMany(Ingredient::class);
+        return $this->hasMany(Ingredient::class, 'recipe_id');
     }
 
     /**
@@ -98,7 +77,7 @@ class Recipe extends Model
      */
     public function steps(): HasMany
     {
-        return $this->hasMany(CookingStep::class)->orderBy('step_number');
+        return $this->hasMany(CookingStep::class, 'recipe_id')->orderBy('step_number');
     }
 
     /**
@@ -106,7 +85,7 @@ class Recipe extends Model
      */
     public function likes(): HasMany
     {
-        return $this->hasMany(Like::class);
+        return $this->hasMany(Like::class, 'recipe_id');
     }
 
     /**
@@ -123,7 +102,7 @@ class Recipe extends Model
      */
     public function bookmarks(): HasMany
     {
-        return $this->hasMany(Bookmark::class);
+        return $this->hasMany(Bookmark::class, 'recipe_id');
     }
 
     /**
