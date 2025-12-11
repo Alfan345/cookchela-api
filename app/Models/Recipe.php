@@ -21,12 +21,12 @@ class Recipe extends Model
         'likes_count',
         'bookmarks_count',
     ];
-    
+
     protected $casts = [
-        'cooking_time' => 'integer',
-        'servings' => 'integer',
-        'likes_count' => 'integer',
-        'bookmarks_count' => 'integer',
+        'cooking_time'     => 'integer',
+        'servings'         => 'integer',
+        'likes_count'      => 'integer',
+        'bookmarks_count'  => 'integer',
     ];
 
     // ==========================================
@@ -42,12 +42,13 @@ class Recipe extends Model
             return null;
         }
 
+        // Kalau sudah full URL, langsung return
         if (filter_var($this->image, FILTER_VALIDATE_URL)) {
             return $this->image;
         }
 
         $supabaseUrl = config('services.supabase.url');
-        $bucket = config('services.supabase.bucket_recipes', 'recipes');
+        $bucket      = config('services.supabase.bucket_recipes', 'recipes');
 
         return "{$supabaseUrl}/storage/v1/object/public/{$bucket}/{$this->image}";
     }
@@ -69,6 +70,7 @@ class Recipe extends Model
      */
     public function ingredients(): HasMany
     {
+        // pakai 'recipe_id' sesuai skema kamu
         return $this->hasMany(Ingredient::class, 'recipe_id');
     }
 
@@ -77,7 +79,8 @@ class Recipe extends Model
      */
     public function steps(): HasMany
     {
-        return $this->hasMany(CookingStep::class, 'recipe_id')->orderBy('step_number');
+        return $this->hasMany(CookingStep::class, 'recipe_id')
+                    ->orderBy('step_number');
     }
 
     /**
@@ -94,7 +97,7 @@ class Recipe extends Model
     public function likedByUsers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'likes', 'recipe_id', 'user_id')
-            ->withPivot('created_at');
+                    ->withPivot('created_at');
     }
 
     /**
@@ -111,6 +114,6 @@ class Recipe extends Model
     public function bookmarkedByUsers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'bookmarks', 'recipe_id', 'user_id')
-            ->withPivot('created_at');
+                    ->withPivot('created_at');
     }
 }
