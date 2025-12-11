@@ -6,14 +6,14 @@ use App\Http\Controllers\Api\V1\RecipeController;
 use App\Http\Controllers\Api\V1\BookmarkController;
 use App\Http\Controllers\Api\V1\SearchController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\V1\UserRecipeController;
-use App\Http\Controllers\Api\V1\RecipeLikeController;
+
+use App\Http\Controllers\TestSupabaseController;
 
 /*
 | API Routes
-|--------------------------------------------------------------------------
+|--------------------------------------------------------------------------|
 | Prefix /api sudah otomatis dari RouteServiceProvider,
-| jadi di sini kita pakai prefix /v1 untuk versi API.
+| di sini kita pakai prefix /v1 untuk versi API.
 */
 
 Route::prefix('v1')->group(function () {
@@ -39,33 +39,7 @@ Route::prefix('v1')->group(function () {
     });
 
     // ==========================================
-    // Recipes Routes (Public)
-    // ==========================================
-
-    // Detail resep: auth optional untuk guest
-    Route::get('/recipes/{recipe}', [RecipeController::class, 'show'])
-        ->whereNumber('recipe');
-
-    // Daftar resep milik user tertentu (public)
-    Route::get('/users/{username}/recipes', [UserRecipeController::class, 'index']);
-
-    // ==========================================
-    // Recipes Routes (Protected)
-    // ==========================================
-    Route::middleware('auth:sanctum')->group(function () {
-
-        // Feed & Home sections (butuh auth)
-        Route::get('/recipes/timeline', [RecipeController::class, 'timeline']);
-        Route::get('/recipes/recommendations', [RecipeController::class, 'recommendations']);
-
-        // CRUD
-        Route::post('/recipes', [RecipeController::class, 'store']);
-        Route::put('/recipes/{recipe}', [RecipeController::class, 'update'])
-            ->whereNumber('recipe');
-        Route::delete('/recipes/{recipe}', [RecipeController::class, 'destroy'])
-            ->whereNumber('recipe');
-
-    // User Routes (Protected) - Current User
+    // User Routes (Protected) - current user
     // ==========================================
     Route::prefix('user')->middleware('auth:sanctum')->group(function () {
 
@@ -80,7 +54,6 @@ Route::prefix('v1')->group(function () {
         // Update language preference
         Route::put('/language', [UserController::class, 'updateLanguage'])
             ->name('user.language.update');
-
     });
 
     // ==========================================
@@ -88,27 +61,22 @@ Route::prefix('v1')->group(function () {
     // ==========================================
     Route::prefix('users')->group(function () {
 
-        // Get user by username (public profile) - dapat diakses tanpa login
+        // Public profile by username
         Route::get('/{username}', [UserController::class, 'show'])
             ->name('users.show');
 
-        // Get user's recipes - dapat diakses tanpa login
+        // Public: user's recipes
         Route::get('/{username}/recipes', [UserController::class, 'recipes'])
             ->name('users.recipes');
 
-        // Follow/Unfollow - memerlukan login
+        // Follow / Unfollow (protected)
         Route::middleware('auth:sanctum')->group(function () {
-
-            // Follow user
             Route::post('/{username}/follow', [UserController::class, 'follow'])
                 ->name('users.follow');
 
-            // Unfollow user
             Route::delete('/{username}/follow', [UserController::class, 'unfollow'])
-                ->name('users. unfollow');
-
+                ->name('users.unfollow');
         });
-
     });
 
     // ==========================================
@@ -116,34 +84,47 @@ Route::prefix('v1')->group(function () {
     // ==========================================
     Route::prefix('recipes')->group(function () {
 
-        // Timeline/Feed - dapat diakses tanpa login (tapi is_liked, is_bookmarked akan false)
+        // Timeline / feed (guest boleh akses,
+        // tapi is_liked & is_bookmarked hanya true kalau pakai token)
         Route::get('/timeline', [RecipeController::class, 'timeline'])
-            ->name('recipes. timeline');
+            ->name('recipes.timeline');
 
-        // Recommendations - dapat diakses tanpa login
+        // Recommendations (guest boleh)
         Route::get('/recommendations', [RecipeController::class, 'recommendations'])
             ->name('recipes.recommendations');
 
-        // Get recipe detail - dapat diakses tanpa login
+        // Detail resep (guest boleh)
         Route::get('/{id}', [RecipeController::class, 'show'])
-            ->where('id', '[0-9]+')
+            ->whereNumber('id')
             ->name('recipes.show');
 
-        // Like/Unlike - memerlukan login
+        // Protected: CRUD + like/unlike
         Route::middleware('auth:sanctum')->group(function () {
+
+            // Create recipe
+            Route::post('/', [RecipeController::class, 'store'])
+                ->name('recipes.store');
+
+            // Update recipe
+            Route::put('/{id}', [RecipeController::class, 'update'])
+                ->whereNumber('id')
+                ->name('recipes.update');
+
+            // Delete recipe
+            Route::delete('/{id}', [RecipeController::class, 'destroy'])
+                ->whereNumber('id')
+                ->name('recipes.destroy');
 
             // Like recipe
             Route::post('/{id}/like', [RecipeController::class, 'like'])
-                ->where('id', '[0-9]+')
+                ->whereNumber('id')
                 ->name('recipes.like');
 
             // Unlike recipe
             Route::delete('/{id}/like', [RecipeController::class, 'unlike'])
-                ->where('id', '[0-9]+')
-                ->name('recipes. unlike');
-
+                ->whereNumber('id')
+                ->name('recipes.unlike');
         });
-
     });
 
     // ==========================================
@@ -153,23 +134,22 @@ Route::prefix('v1')->group(function () {
 
         // Get user's bookmarks
         Route::get('/', [BookmarkController::class, 'index'])
-            ->name('bookmarks. index');
+            ->name('bookmarks.index');
 
         // Add bookmark
         Route::post('/{recipeId}', [BookmarkController::class, 'store'])
-            ->where('recipeId', '[0-9]+')
+            ->whereNumber('recipeId')
             ->name('bookmarks.store');
 
         // Remove bookmark
         Route::delete('/{recipeId}', [BookmarkController::class, 'destroy'])
-            ->where('recipeId', '[0-9]+')
+            ->whereNumber('recipeId')
             ->name('bookmarks.destroy');
 
         // Check if bookmarked
         Route::get('/{recipeId}/check', [BookmarkController::class, 'check'])
-            ->where('recipeId', '[0-9]+')
+            ->whereNumber('recipeId')
             ->name('bookmarks.check');
-
     });
 
     // ==========================================
@@ -177,42 +157,33 @@ Route::prefix('v1')->group(function () {
     // ==========================================
     Route::prefix('search')->group(function () {
 
-        // Search recipes - dapat diakses tanpa login
+        // Search recipes (guest boleh)
         Route::get('/recipes', [SearchController::class, 'recipes'])
             ->name('search.recipes');
 
-        // Search by ingredients - dapat diakses tanpa login
+        // Search by ingredients (guest boleh)
         Route::post('/ingredients', [SearchController::class, 'byIngredients'])
             ->name('search.ingredients');
 
-        // Get suggestions/autocomplete - dapat diakses tanpa login
+        // Suggestions / autocomplete (guest boleh)
         Route::get('/suggestions', [SearchController::class, 'suggestions'])
             ->name('search.suggestions');
 
-        // Search history - memerlukan login
+        // History (protected)
         Route::middleware('auth:sanctum')->group(function () {
 
-            // Get search history
+            // Get history
             Route::get('/history', [SearchController::class, 'history'])
                 ->name('search.history');
 
-            // Clear all search history
+            // Clear all history
             Route::delete('/history', [SearchController::class, 'clearHistory'])
                 ->name('search.history.clear');
 
-            // Delete specific search history
+            // Delete one keyword
             Route::delete('/history/{keyword}', [SearchController::class, 'deleteHistory'])
-                ->name('search.history. delete');
-
+                ->name('search.history.delete');
         });
-
-    });
-
-        // Like / Unlike
-        Route::post('/recipes/{recipe}/like', [RecipeLikeController::class, 'store'])
-            ->whereNumber('recipe');
-        Route::delete('/recipes/{recipe}/like', [RecipeLikeController::class, 'destroy'])
-            ->whereNumber('recipe');
     });
 });
 
@@ -221,12 +192,13 @@ Route::prefix('v1')->group(function () {
 // ==========================================
 Route::get('/health', function () {
     return response()->json([
-        'status' => 'ok',
+        'status'    => 'ok',
         'timestamp' => now()->toISOString(),
-        'app'      => config('app.name'),
-        'version'  => '1.0.0',
+        'app'       => config('app.name'),
+        'version'   => '1.0.0',
     ]);
 })->name('health');
 
-Route::get('/test-supabase', [App\Http\Controllers\TestSupabaseController::class, 'test']);
-Route::post('/test-supabase-upload', [App\Http\Controllers\TestSupabaseController::class, 'testUpload']);
+// Test Supabase
+Route::get('/test-supabase', [TestSupabaseController::class, 'test']);
+Route::post('/test-supabase-upload', [TestSupabaseController::class, 'testUpload']);
