@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CookingStep extends Model
 {
-    public $timestamps = false;
+    protected $table = 'cooking_steps';
 
     protected $fillable = [
         'recipe_id',
@@ -18,18 +18,16 @@ class CookingStep extends Model
 
     protected $casts = [
         'step_number' => 'integer',
-        'created_at' => 'datetime',
+        'created_at'  => 'datetime',
+        'updated_at'  => 'datetime',
     ];
-
-    const CREATED_AT = 'created_at';
-    const UPDATED_AT = null;
 
     /**
      * Cooking step belongs to a recipe
      */
     public function recipe(): BelongsTo
     {
-        return $this->belongsTo(Recipe::class);
+        return $this->belongsTo(Recipe::class, 'recipe_id');
     }
 
     /**
@@ -41,12 +39,13 @@ class CookingStep extends Model
             return null;
         }
 
+        // kalau sudah full URL, langsung balikin
         if (filter_var($this->image, FILTER_VALIDATE_URL)) {
             return $this->image;
         }
 
         $supabaseUrl = config('services.supabase.url');
-        $bucket = config('services.supabase.bucket_recipes', 'recipes');
+        $bucket      = config('services.supabase.bucket_recipes', 'recipes');
 
         return "{$supabaseUrl}/storage/v1/object/public/{$bucket}/{$this->image}";
     }

@@ -20,11 +20,11 @@ class UpdateRecipeRequest extends FormRequest
             'cooking_time' => 'sometimes|integer|min:1',
             'servings'     => 'sometimes|integer|min:1',
 
-            'ingredients'                             => 'sometimes|array|min:1',
-            'ingredients.*.master_ingredient_id'      => 'required_with:ingredients|integer|exists:master_ingredients,id',
-            'ingredients.*.quantity'                  => 'required_with:ingredients|string|max:50',
-            'ingredients.*.unit'                      => 'nullable|string|max:50',
-
+            'ingredients'             => 'sometimes|array|min:1',
+            'ingredients.*.name'      => 'required_with:ingredients|string|max:255',
+            'ingredients.*.quantity'  => 'nullable|string|max:50',
+            'ingredients.*.unit'      => 'nullable|string|max:50',
+            
             'cooking_steps'                           => 'sometimes|array|min:1',
             'cooking_steps.*.step_number'             => 'required_with:cooking_steps|integer|min:1',
             'cooking_steps.*.description'             => 'required_with:cooking_steps|string',

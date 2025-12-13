@@ -7,19 +7,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Like extends Model
 {
+    protected $table = 'likes';
+
+   
     public $timestamps = false;
 
     protected $fillable = [
         'user_id',
         'recipe_id',
     ];
-
-    protected $casts = [
-        'created_at' => 'datetime',
-    ];
-
-    const CREATED_AT = 'created_at';
-    const UPDATED_AT = null;
 
     /**
      * Like belongs to a user
