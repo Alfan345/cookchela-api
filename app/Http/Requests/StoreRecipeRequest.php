@@ -20,14 +20,16 @@ class StoreRecipeRequest extends FormRequest
             'cooking_time' => 'required|integer|min:1',
             'servings'     => 'required|integer|min:1',
 
-            'ingredients'                             => 'required|array|min:1',
-            'ingredients.*.master_ingredient_id'      => 'required|integer|exists:master_ingredients,id',
-            'ingredients.*.quantity'                  => 'required|string|max:50',
-            'ingredients.*.unit'                      => 'nullable|string|max:50',
+            // === INGREDIENTS: user ketik sendiri ===
+            'ingredients'             => 'required|array|min:1',
+            'ingredients.*.name'      => 'required|string|max:255',
+            'ingredients.*.quantity'  => 'nullable|string|max:50',
+            'ingredients.*.unit'      => 'nullable|string|max:50',
 
-            'cooking_steps'                           => 'required|array|min:1',
-            'cooking_steps.*.step_number'             => 'required|integer|min:1',
-            'cooking_steps.*.description'             => 'required|string',
+            // === COOKING STEPS (tanpa foto per langkah) ===
+            'cooking_steps'                   => 'required|array|min:1',
+            'cooking_steps.*.step_number'     => 'required|integer|min:1',
+            'cooking_steps.*.description'     => 'required|string',
         ];
     }
 }
