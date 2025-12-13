@@ -245,7 +245,7 @@ class UserService
     /**
      * Get user's recipes
      */
-    public function getUserRecipes(string $username, ?User $currentUser = null): ?array
+    public function getUserRecipes(string $username, ?User $currentUser = null, int $perPage = 10)
     {
         $user = User::where('username', $username)->first();
 
@@ -253,20 +253,10 @@ class UserService
             return null;
         }
 
-        $recipes = $user->recipes()
+        return $user->recipes()
             ->with(['user', 'ingredients', 'steps'])
             ->latest()
-            ->get();
-
-        return [
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'username' => $user->username,
-                'avatar_url' => $user->avatar_url,
-            ],
-            'recipes' => $recipes,
-        ];
+            ->paginate($perPage);
     }
 
     /**
