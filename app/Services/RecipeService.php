@@ -72,13 +72,13 @@ class RecipeService
             'steps',
         ])->find($id);
 
-        if (!$recipe) {
+        if (! $recipe) {
             return null;
         }
 
-        $isLiked       = false;
-        $isBookmarked  = false;
-        $isFollowed    = false;
+        $isLiked      = false;
+        $isBookmarked = false;
+        $isFollowed   = false;
 
         if ($user) {
             $isLiked      = $user->hasLiked($recipe);
@@ -89,23 +89,23 @@ class RecipeService
         }
 
         return [
-            'id'               => $recipe->id,
-            'title'            => $recipe->title,
-            'image_url'        => $recipe->image_url,
-            'description'      => $recipe->description,
-            'cooking_time'     => $recipe->cooking_time,
-            'servings'         => $recipe->servings,
-            'likes_count'      => $recipe->likes_count ?? 0,
-            'bookmarks_count'  => $recipe->bookmarks_count ?? 0,
-            'is_liked'         => $isLiked,
-            'is_bookmarked'    => $isBookmarked,
+            'id'              => $recipe->id,
+            'title'           => $recipe->title,
+            'image_url'       => $recipe->image_url,
+            'description'     => $recipe->description,
+            'cooking_time'    => $recipe->cooking_time,
+            'servings'        => $recipe->servings,
+            'likes_count'     => $recipe->likes_count ?? 0,
+            'bookmarks_count' => $recipe->bookmarks_count ?? 0,
+            'is_liked'        => $isLiked,
+            'is_bookmarked'   => $isBookmarked,
             'user' => [
-                'id'               => $recipe->user->id,
-                'name'             => $recipe->user->name,
-                'username'         => $recipe->user->username,
-                'avatar_url'       => $recipe->user->avatar_url,
-                'followers_count'  => $recipe->user->followers_count ?? 0,
-                'is_followed'      => $isFollowed,
+                'id'              => $recipe->user->id,
+                'name'            => $recipe->user->name,
+                'username'        => $recipe->user->username,
+                'avatar_url'      => $recipe->user->avatar_url,
+                'followers_count' => $recipe->user->followers_count ?? 0,
+                'is_followed'     => $isFollowed,
             ],
             'ingredients' => $recipe->ingredients->map(function ($ingredient) {
                 return [
@@ -132,13 +132,10 @@ class RecipeService
     // LIKE / UNLIKE
     // ==========================================
 
-    /**
-     * Like a recipe
-     */
     public function likeRecipe(User $user, int $recipeId): ?array
     {
         $recipe = Recipe::find($recipeId);
-        if (!$recipe) {
+        if (! $recipe) {
             return null;
         }
 
@@ -163,17 +160,14 @@ class RecipeService
         ];
     }
 
-    /**
-     * Unlike a recipe
-     */
     public function unlikeRecipe(User $user, int $recipeId): ?array
     {
         $recipe = Recipe::find($recipeId);
-        if (!$recipe) {
+        if (! $recipe) {
             return null;
         }
 
-        if (!$user->hasLiked($recipe)) {
+        if (! $user->hasLiked($recipe)) {
             return ['error' => 'Belum menyukai resep ini'];
         }
 
@@ -193,9 +187,6 @@ class RecipeService
         ];
     }
 
-    /**
-     * Format recipe for list view
-     */
     private function formatRecipeForList(Recipe $recipe, ?User $user = null): array
     {
         $isLiked      = false;
@@ -233,7 +224,6 @@ class RecipeService
 
     /**
      * Buat resep baru + upload image (kalau ada)
-     * - recipes.image NOT NULL -> kita isi '' dulu, lalu update setelah upload
      */
     public function createRecipe(array $data, int $userId): Recipe
     {
@@ -245,7 +235,6 @@ class RecipeService
 
             unset($data['ingredients'], $data['cooking_steps'], $data['image']);
 
-            // Insert recipe dulu (image tidak boleh null)
             $recipe = Recipe::create([
                 'user_id'         => $userId,
                 'title'           => $data['title'],
@@ -254,30 +243,27 @@ class RecipeService
                 'servings'        => $data['servings'],
                 'likes_count'     => 0,
                 'bookmarks_count' => 0,
-                'image'           => '', // penting: biar lolos NOT NULL
+                'image'           => '',
             ]);
 
-            // Upload image kalau ada
+            // upload foto resep kalau ada
             if ($imageFile instanceof UploadedFile) {
-                $imagePath      = $this->storage->uploadRecipeImage($recipe->id, $imageFile);
-                $recipe->image  = $imagePath;
+                $imagePath     = $this->storage->uploadRecipeImage($recipe->id, $imageFile);
+                $recipe->image = $imagePath;
                 $recipe->save();
             }
 
-            // Insert ingredients + tags
-            if (!empty($ingredients)) {
-                [$ingredientRows, $tagRows] = $this->buildIngredientRowsAndTags($ingredients, $recipe->id);
+            // insert ingredients
+            if (! empty($ingredients)) {
+                $ingredientRows = $this->buildIngredientRows($ingredients, $recipe->id);
 
                 if ($ingredientRows) {
                     Ingredient::insert($ingredientRows);
                 }
-                if ($tagRows) {
-                    DB::table('recipe_ingredient_tags')->insert($tagRows);
-                }
             }
 
-            // Insert cooking steps
-            if (!empty($steps)) {
+            // insert steps
+            if (! empty($steps)) {
                 $stepRows = $this->buildStepRows($steps, $recipe->id);
 
                 if ($stepRows) {
@@ -292,8 +278,6 @@ class RecipeService
 
     /**
      * Update resep + optional update image
-     * - kalau ingredients dikirim -> replace all
-     * - kalau steps dikirim -> replace all
      */
     public function updateRecipe(Recipe $recipe, array $data): Recipe
     {
@@ -305,7 +289,6 @@ class RecipeService
 
             unset($data['ingredients'], $data['cooking_steps'], $data['image']);
 
-            // Update main recipe fields
             $recipe->fill([
                 'title'        => $data['title']        ?? $recipe->title,
                 'description'  => $data['description']  ?? $recipe->description,
@@ -314,7 +297,7 @@ class RecipeService
             ]);
             $recipe->save();
 
-            // Ganti image kalau ada yang baru
+            // ganti image kalau ada baru
             if ($imageFile instanceof UploadedFile) {
                 if ($recipe->image) {
                     $this->storage->deleteRecipeImage($recipe->image);
@@ -325,22 +308,18 @@ class RecipeService
                 $recipe->save();
             }
 
-            // Replace ingredients kalau dikirim
+            // replace ingredients kalau dikirim
             if (is_array($ingredients)) {
                 Ingredient::where('recipe_id', $recipe->id)->delete();
-                DB::table('recipe_ingredient_tags')->where('recipe_id', $recipe->id)->delete();
 
-                [$ingredientRows, $tagRows] = $this->buildIngredientRowsAndTags($ingredients, $recipe->id);
+                $ingredientRows = $this->buildIngredientRows($ingredients, $recipe->id);
 
                 if ($ingredientRows) {
                     Ingredient::insert($ingredientRows);
                 }
-                if ($tagRows) {
-                    DB::table('recipe_ingredient_tags')->insert($tagRows);
-                }
             }
 
-            // Replace steps kalau dikirim
+            // replace steps kalau dikirim
             if (is_array($steps)) {
                 CookingStep::where('recipe_id', $recipe->id)->delete();
 
@@ -357,7 +336,7 @@ class RecipeService
     }
 
     /**
-     * Hapus resep + semua relasi terkait
+     * Hapus resep + semua relasi
      */
     public function deleteRecipe(Recipe $recipe): void
     {
@@ -366,10 +345,6 @@ class RecipeService
             CookingStep::where('recipe_id', $recipe->id)->delete();
             Like::where('recipe_id', $recipe->id)->delete();
             Bookmark::where('recipe_id', $recipe->id)->delete();
-
-            DB::table('recipe_ingredient_tags')
-                ->where('recipe_id', $recipe->id)
-                ->delete();
 
             if ($recipe->image) {
                 $this->storage->deleteRecipeImage($recipe->image);
@@ -384,54 +359,26 @@ class RecipeService
     // ==========================================
 
     /**
-     * Build ingredient rows & tag rows.
-     * - ingredients.name NOT NULL -> isi dari master_ingredients.name
-     * - recipe_ingredient_tags hanya pakai created_at
+     * Build rows untuk tabel ingredients
+     * (user input nama bahan sendiri)
      */
-    private function buildIngredientRowsAndTags(array $ingredients, int $recipeId): array
+    private function buildIngredientRows(array $ingredients, int $recipeId): array
     {
-        $masterIds = collect($ingredients)
-            ->pluck('master_ingredient_id')
-            ->filter()
-            ->unique()
-            ->values()
-            ->all();
-
-        $masterMap = $masterIds
-            ? MasterIngredient::whereIn('id', $masterIds)->pluck('name', 'id')
-            : collect();
-
         $now  = now();
         $rows = [];
-        $tags = [];
 
         foreach ($ingredients as $item) {
-            $masterId = $item['master_ingredient_id'] ?? null;
-
-            // nama bahan diisi otomatis dari master
-            $name = $item['name'] ?? null;
-            if (!$name && $masterId) {
-                $name = $masterMap[$masterId] ?? null;
-            }
-
             $rows[] = [
-                'recipe_id'            => $recipeId,
-                'master_ingredient_id' => $masterId,
-                'name'                 => $name,
-                'quantity'             => $item['quantity'] ?? null,
-                'unit'                 => $item['unit'] ?? null,
-                'created_at'           => $now,
-                'updated_at'           => $now,
-            ];
-
-            $tags[] = [
-                'recipe_id'            => $recipeId,
-                'master_ingredient_id' => $masterId,
-                'created_at'           => $now,
+                'recipe_id'  => $recipeId,
+                'name'       => $item['name'] ?? null,
+                'quantity'   => $item['quantity'] ?? null,
+                'unit'       => $item['unit'] ?? null,
+                'created_at' => $now,
+                'updated_at' => $now,
             ];
         }
 
-        return [$rows, $tags];
+        return $rows;
     }
 
     /**
