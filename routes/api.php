@@ -6,8 +6,9 @@ use App\Http\Controllers\Api\V1\RecipeController;
 use App\Http\Controllers\Api\V1\BookmarkController;
 use App\Http\Controllers\Api\V1\SearchController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\V1\UserRecipeController;
+use App\Http\Controllers\Api\V1\RecipeLikeController;
 
-use App\Http\Controllers\TestSupabaseController;
 
 /*
 | API Routes
@@ -48,12 +49,24 @@ Route::prefix('v1')->group(function () {
             ->name('user.profile');
 
         // Update current user profile
-        Route::put('/profile', [UserController::class, 'updateProfile'])
-            ->name('user.profile.update');
+        Route::match(['put', 'post'], '/profile', [UserController:: class, 'updateProfile'])
+            ->name('user.profile. update');
 
         // Update language preference
         Route::put('/language', [UserController::class, 'updateLanguage'])
-            ->name('user.language.update');
+            ->name('user.language. update');
+
+        // Change password
+        Route::put('/password', [UserController::class, 'changePassword'])
+            ->name('user.password.change');
+
+        // Change email
+        Route::put('/email', [UserController::class, 'changeEmail'])
+            ->name('user.email.change');
+
+        // Delete account
+        Route::delete('/account', [UserController::class, 'deleteAccount'])
+            ->name('user.account.delete');
     });
 
     // ==========================================
@@ -199,6 +212,5 @@ Route::get('/health', function () {
     ]);
 })->name('health');
 
-// Test Supabase
-Route::get('/test-supabase', [TestSupabaseController::class, 'test']);
-Route::post('/test-supabase-upload', [TestSupabaseController::class, 'testUpload']);
+Route::get('/test-supabase', [App\Http\Controllers\TestSupabaseController::class, 'test']);
+Route::post('/test-supabase-upload', [App\Http\Controllers\TestSupabaseController::class, 'testUpload']);

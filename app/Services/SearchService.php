@@ -140,9 +140,10 @@ class SearchService
     {
         return SearchHistory::where('user_id', $user->id)
             ->whereNotNull('keyword')
+            ->orderBy('keyword')
+            ->orderByDesc('searched_at')
             ->select('keyword', 'searched_at')
             ->distinct('keyword')
-            ->orderByDesc('searched_at')
             ->limit($limit)
             ->get()
             ->map(function ($history) {

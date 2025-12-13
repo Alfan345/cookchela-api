@@ -24,6 +24,7 @@ class User extends Authenticatable
         'followers_count',
         'following_count',
         'language',
+        'avatar',
     ];
 
     protected $hidden = [

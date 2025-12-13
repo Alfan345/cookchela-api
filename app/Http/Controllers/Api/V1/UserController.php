@@ -9,6 +9,9 @@ use App\Services\UserService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Http\Requests\Api\V1\User\ChangePasswordRequest;
+use App\Http\Requests\Api\V1\User\ChangeEmailRequest;
+
 
 class UserController extends Controller
 {
@@ -34,7 +37,13 @@ class UserController extends Controller
      * PUT /user/profile
      */
     public function updateProfile(UpdateProfileRequest $request): JsonResponse
-{
+    {
+    \Log::info('[UserController] updateProfile request', [
+        'validated' => $request->validated(),
+        'has_file' => $request->hasFile('avatar'),
+        'file_size' => $request->hasFile('avatar') ? $request->file('avatar')->getSize() : null,
+    ]);
+
     $profile = $this->userService->updateProfile(
         $request->user(),
         $request->validated(),
@@ -42,7 +51,7 @@ class UserController extends Controller
     );
 
     return $this->successResponse($profile, 'Profil berhasil diperbarui');
-}
+    }
 
     /**
      * Update language preference
@@ -125,5 +134,68 @@ class UserController extends Controller
         }
 
         return $this->paginatedResponse($recipes, 'Resep user berhasil diambil');
+    }
+
+    /**
+     * Change password
+     * PUT /user/password
+     */
+    public function changePassword(ChangePasswordRequest $request): JsonResponse
+    {
+        try {
+            $this->userService->changePassword(
+                $request->user(),
+                $request->input('current_password'),
+                $request->input('new_password')
+            );
+
+            return $this->successResponse(null, 'Password berhasil diubah');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), $e->getCode() ?: 400);
+        }
+    }
+
+    /**
+     * Change email
+     * PUT /user/email
+     */
+    public function changeEmail(ChangeEmailRequest $request): JsonResponse
+    {
+        try {
+            $this->userService->changeEmail(
+                $request->user(),
+                $request->input('email'),
+                $request->input('password')
+            );
+
+            return $this->successResponse(
+                ['email' => $request->input('email')],
+                'Email berhasil diubah.  Silakan verifikasi email baru Anda'
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), $e->getCode() ?: 400);
+        }
+    }
+
+    /**
+     * Delete account
+     * DELETE /user/account
+     */
+    public function deleteAccount(Request $request): JsonResponse
+    {
+        $request->validate([
+            'password' => 'required|string',
+        ]);
+
+        try {
+            $this->userService->deleteAccount(
+                $request->user(),
+                $request->input('password')
+            );
+
+            return $this->successResponse(null, 'Akun berhasil dihapus');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), $e->getCode() ?: 400);
+        }
     }
 }
