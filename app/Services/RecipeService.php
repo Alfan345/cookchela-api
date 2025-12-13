@@ -7,7 +7,6 @@ use App\Models\Ingredient;
 use App\Models\CookingStep;
 use App\Models\Like;
 use App\Models\Bookmark;
-use App\Models\MasterIngredient;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
