@@ -170,16 +170,20 @@ Route::prefix('v1')->group(function () {
     // ==========================================
     Route::prefix('search')->group(function () {
 
-        // Search recipes (guest boleh)
+        // Search recipes 
         Route::get('/recipes', [SearchController::class, 'recipes'])
+            ->middleware('auth:sanctum')
             ->name('search.recipes');
 
-        // Search by ingredients (guest boleh)
-        Route::post('/ingredients', [SearchController::class, 'byIngredients'])
+        // Search by ingredients
+        Route::post('/ingredients', [SearchController:: class, 'byIngredients'])
+            ->middleware('auth:sanctum')
             ->name('search.ingredients');
 
-        // Suggestions / autocomplete (guest boleh)
+
+        // Suggestions / autocomplete 
         Route::get('/suggestions', [SearchController::class, 'suggestions'])
+            ->middleware('auth:sanctum')  
             ->name('search.suggestions');
 
         // History (protected)
