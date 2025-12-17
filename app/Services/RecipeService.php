@@ -32,7 +32,7 @@ class RecipeService
 
         $recipes = $query->paginate($perPage);
 
-        // Tambahkan flag is_liked & is_bookmarked
+        // Tambahkan flag is_liked & is_bookmarked per item
         $recipes->getCollection()->transform(function (Recipe $recipe) use ($user) {
             return $this->formatRecipeForList($recipe, $user);
         });
@@ -129,9 +129,12 @@ class RecipeService
     }
 
     // ==========================================
-    // LIKE / UNLIKE
+    // LIKE / UNLIKE (IDEMPOTENT)
     // ==========================================
 
+    /**
+     * Like a recipe (idempotent)
+     */
     public function likeRecipe(User $user, int $recipeId): ?array
     {
         $recipe = Recipe::find($recipeId);
@@ -139,8 +142,12 @@ class RecipeService
             return null;
         }
 
+        // Kalau sudah like, jangan error. Kembalikan state akhir saja.
         if ($user->hasLiked($recipe)) {
-            return ['error' => 'Sudah menyukai resep ini'];
+            return [
+                'is_liked'    => true,
+                'likes_count' => $recipe->likes_count,
+            ];
         }
 
         DB::transaction(function () use ($user, $recipe) {
@@ -160,6 +167,9 @@ class RecipeService
         ];
     }
 
+    /**
+     * Unlike a recipe (idempotent)
+     */
     public function unlikeRecipe(User $user, int $recipeId): ?array
     {
         $recipe = Recipe::find($recipeId);
@@ -167,8 +177,12 @@ class RecipeService
             return null;
         }
 
+        // Kalau belum like tapi di-unlike, jangan error.
         if (! $user->hasLiked($recipe)) {
-            return ['error' => 'Belum menyukai resep ini'];
+            return [
+                'is_liked'    => false,
+                'likes_count' => $recipe->likes_count,
+            ];
         }
 
         DB::transaction(function () use ($user, $recipe) {
@@ -176,7 +190,9 @@ class RecipeService
                 ->where('recipe_id', $recipe->id)
                 ->delete();
 
-            $recipe->decrement('likes_count');
+            if ($recipe->likes_count > 0) {
+                $recipe->decrement('likes_count');
+            }
         });
 
         $recipe->refresh();
@@ -187,6 +203,9 @@ class RecipeService
         ];
     }
 
+    /**
+     * Format recipe untuk list/timeline
+     */
     private function formatRecipeForList(Recipe $recipe, ?User $user = null): array
     {
         $isLiked      = false;
@@ -253,7 +272,7 @@ class RecipeService
                 $recipe->save();
             }
 
-            // insert ingredients
+            // insert ingredients (user ketik sendiri)
             if (! empty($ingredients)) {
                 $ingredientRows = $this->buildIngredientRows($ingredients, $recipe->id);
 
@@ -359,8 +378,7 @@ class RecipeService
     // ==========================================
 
     /**
-     * Build rows untuk tabel ingredients
-     * (user input nama bahan sendiri)
+     * Build rows untuk tabel ingredients (user input nama bahan sendiri)
      */
     private function buildIngredientRows(array $ingredients, int $recipeId): array
     {
