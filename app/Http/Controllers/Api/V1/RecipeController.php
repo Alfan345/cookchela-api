@@ -10,6 +10,7 @@ use App\Services\RecipeService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth; // <--- TAMBAHAN PENTING
 
 class RecipeController extends Controller
 {
@@ -28,8 +29,11 @@ class RecipeController extends Controller
      */
     public function timeline(Request $request): JsonResponse
     {
-        $perPage = min((int)$request->input('per_page', 10), 50);
-        $recipes = $this->recipeService->getTimeline($request->user(), $perPage);
+        // ambil user dari token Sanctum kalau ada, kalau guest -> null
+        $user = Auth::guard('sanctum')->user();
+
+        $perPage = min((int) $request->input('per_page', 10), 50);
+        $recipes = $this->recipeService->getTimeline($user, $perPage);
 
         return $this->paginatedResponse($recipes, 'Timeline berhasil diambil');
     }
@@ -39,8 +43,11 @@ class RecipeController extends Controller
      */
     public function recommendations(Request $request): JsonResponse
     {
-        $limit   = min((int)$request->input('limit', 5), 10);
-        $recipes = $this->recipeService->getRecommendations($request->user(), $limit);
+        // boleh pakai user juga kalau nanti mau dipersonalisasi
+        $user  = Auth::guard('sanctum')->user();
+        $limit = min((int) $request->input('limit', 5), 10);
+
+        $recipes = $this->recipeService->getRecommendations($user, $limit);
 
         return $this->successResponse($recipes, 'Rekomendasi resep berhasil diambil');
     }
@@ -50,9 +57,11 @@ class RecipeController extends Controller
      */
     public function show(Request $request, int $id): JsonResponse
     {
-        $recipe = $this->recipeService->getRecipeDetail($id, $request->user());
+        // ambil user dari token Sanctum kalau ada
+        $user   = Auth::guard('sanctum')->user();
+        $recipe = $this->recipeService->getRecipeDetail($id, $user);
 
-        if (!$recipe) {
+        if (! $recipe) {
             return $this->notFoundResponse('Resep tidak ditemukan');
         }
 
@@ -68,12 +77,14 @@ class RecipeController extends Controller
      */
     public function like(Request $request, int $id): JsonResponse
     {
+        // di route sudah pakai auth:sanctum, jadi $request->user() pasti ada
         $result = $this->recipeService->likeRecipe($request->user(), $id);
 
-        if (!$result) {
+        if (! $result) {
             return $this->notFoundResponse('Resep tidak ditemukan');
         }
 
+        // sekarang likeRecipe sudah idempotent, idealnya tidak ada 'error' lagi
         if (isset($result['error'])) {
             return $this->errorResponse($result['error'], 400);
         }
@@ -88,7 +99,7 @@ class RecipeController extends Controller
     {
         $result = $this->recipeService->unlikeRecipe($request->user(), $id);
 
-        if (!$result) {
+        if (! $result) {
             return $this->notFoundResponse('Resep tidak ditemukan');
         }
 
@@ -138,7 +149,7 @@ class RecipeController extends Controller
     {
         $recipe = Recipe::with(['user', 'ingredients', 'steps'])->find($id);
 
-        if (!$recipe) {
+        if (! $recipe) {
             return $this->notFoundResponse('Resep tidak ditemukan');
         }
 
@@ -170,7 +181,7 @@ class RecipeController extends Controller
     {
         $recipe = Recipe::find($id);
 
-        if (!$recipe) {
+        if (! $recipe) {
             return $this->notFoundResponse('Resep tidak ditemukan');
         }
 
