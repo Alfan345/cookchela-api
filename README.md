@@ -588,8 +588,7 @@ Kontribusi sangat diterima! Jika Anda ingin berkontribusi:
 
 **Alfan**
 - GitHub: [@Alfan345](https://github.com/Alfan345)
-- LinkedIn: [Your LinkedIn](https://linkedin.com/in/yourprofile) _(optional)_
-- Portfolio: [Your Website](https://yourwebsite.com) _(optional)_
+- LinkedIn: [Alfanah-Muhson](https://linkedin.com/in/alfanah-muhson)
 
 ---
 
