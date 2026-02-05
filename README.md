@@ -1,1866 +1,616 @@
-# CookChella API Contract Documentation
+<div align="center">
 
-## Overview
+# 🍳 CookChella API
 
-| Item | Detail |
-|------|--------|
-| **Base URL (Production)** | `https://cookchella-api.onrender.com/api/v1` |
-| **Base URL (Development)** | `http://localhost:8000/api/v1` |
-| **API Version** | v1 |
-| **Response Format** | JSON |
-| **Authentication** | Bearer Token (Laravel Sanctum) |
+**RESTful API Backend untuk Platform Berbagi Resep Masakan**
 
----
+[![Laravel](https://img.shields.io/badge/Laravel-12.0-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
+[![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://php.net)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://postgresql.org)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com)
 
-## Table of Contents
+**[API Documentation](#-dokumentasi-api) • [Live Demo](https://cookchella-api.onrender.com/api/v1/health) • [Tech Stack](#-tech-stack)**
 
-1. [Authentication](#1-authentication)
-2. [User Management](#2-user-management)
-3. [Recipes](#3-recipes)
-4. [Bookmarks](#4-bookmarks)
-5. [Search](#5-search)
-6. [Master Data](#6-master-data)
-7. [Error Handling](#7-error-handling)
-8. [Rate Limiting](#8-rate-limiting)
+</div>
 
 ---
 
-## Headers
+## 📋 Daftar Isi
 
-### Request Headers
+- [Tentang Proyek](#-tentang-proyek)
+- [Fitur Utama](#-fitur-utama)
+- [Tech Stack](#-tech-stack)
+- [Arsitektur & Best Practices](#-arsitektur--best-practices)
+- [Quick Start](#-quick-start)
+- [Dokumentasi API](#-dokumentasi-api)
+- [Environment Setup](#-environment-setup)
+- [Testing](#-testing)
+- [Deployment](#-deployment)
+- [Kontribusi](#-kontribusi)
+- [Lisensi](#-lisensi)
 
-```http
-Content-Type: application/json
-Accept: application/json
-Authorization: Bearer {access_token}
-X-Device-Platform: android|ios|web
-X-App-Version: 1.0. 0
-Accept-Language: id|en
+---
+
+## 🎯 Tentang Proyek
+
+**CookChella API** adalah backend API modern untuk platform berbagi resep masakan yang memungkinkan pengguna untuk:
+- Membuat, berbagi, dan menemukan resep masakan
+- Berinteraksi dengan komunitas melalui fitur like dan bookmark
+- Mencari resep berdasarkan keyword atau bahan yang tersedia
+- Mengikuti chef favorit dan mendapatkan rekomendasi personal
+
+### 🌟 Mengapa CookChella?
+
+Proyek ini dikembangkan dengan fokus pada:
+- ✅ **Clean Architecture** - Service layer pattern untuk maintainability
+- ✅ **RESTful Best Practices** - Consistent API design dengan versioning
+- ✅ **Security First** - Laravel Sanctum authentication, input validation
+- ✅ **Scalability** - Cloud storage integration (Supabase), optimized queries
+- ✅ **Developer Experience** - Comprehensive API documentation, consistent response format
+- ✅ **Production Ready** - Docker support, error handling, rate limiting
+
+---
+
+## ✨ Fitur Utama
+
+### 🔐 Authentication & Authorization
+- **Multi-provider Authentication**
+  - Email & Password (Laravel Sanctum)
+  - Google OAuth 2.0 (Socialite)
+- **Token-based API Authentication**
+- **Profile Management** dengan upload avatar
+
+### 👨‍🍳 Recipe Management (CRUD)
+- **Create** - Upload resep dengan foto, ingredients, dan step-by-step instructions
+- **Read** - Timeline feed, detail resep, dan recommendations
+- **Update/Delete** - Full control untuk pemilik resep
+- **Image Upload** - Integrasi dengan Supabase Storage
+
+### 💙 Social Features
+- **Like System** - Like/unlike resep dengan counter
+- **Bookmark** - Simpan resep favorit
+- **Follow System** - Follow/unfollow users
+- **User Profiles** - View resep by username
+
+### 🔍 Advanced Search
+- **Full-text Search** - Cari berdasarkan title & description
+- **Ingredient-based Search** - Cari resep berdasarkan bahan yang Anda punya
+- **Search Suggestions** - Autocomplete untuk UX lebih baik
+- **Search History** - Track pencarian user (dapat dihapus)
+- **Filters** - Sort by relevance, cooking time, dll
+
+### 📊 Master Data
+- **Categories** - Kategorisasi resep (Breakfast, Lunch, Dinner, dll)
+- **Difficulty Levels** - Easy, Medium, Hard
+- **Cooking Times** - Range waktu memasak
+
+---
+
+## 🛠 Tech Stack
+
+### Backend Framework
+- **Laravel 12.0** - Modern PHP framework dengan fitur terbaru
+- **PHP 8.2+** - Latest PHP version dengan typed properties, enums, dll
+
+### Database & Storage
+- **PostgreSQL** - Relational database utama
+- **Supabase Storage** - Cloud storage untuk images (S3-compatible)
+- **Laravel Eloquent ORM** - Database abstraction layer
+
+### Authentication & Security
+- **Laravel Sanctum** - API token authentication
+- **Laravel Socialite** - OAuth provider (Google)
+- **Validation Layer** - Form Request validation
+- **Middleware** - Rate limiting, JSON response forcing
+
+### DevOps & Tools
+- **Docker** - Containerization untuk deployment
+- **Composer** - PHP dependency manager
+- **PHPUnit** - Unit & feature testing
+- **Laravel Pint** - Code style fixer
+- **Vite** - Asset bundling
+
+### Dependencies Highlights
+```json
+{
+  "laravel/framework": "^12.0",
+  "laravel/sanctum": "^4.2",
+  "laravel/socialite": "^5.23",
+  "league/flysystem-aws-s3-v3": "^3.30"
+}
 ```
 
-### Response Headers
-
-```http
-Content-Type: application/json
-X-RateLimit-Limit: 60
-X-RateLimit-Remaining: 59
-X-Request-Id: uuid
-```
-
 ---
 
-## Standard Response Format
+## 🏗 Arsitektur & Best Practices
 
-### Success Response
+### 🎨 Clean Architecture Pattern
 
+Proyek ini mengikuti **Service-Repository Pattern** untuk separation of concerns:
+
+```
+app/
+├── Http/
+│   ├── Controllers/Api/V1/     # Thin controllers (hanya handle HTTP)
+│   ├── Requests/              # Form Request Validation
+│   └── Middleware/            # Custom middleware
+├── Services/                  # Business logic layer
+│   ├── AuthService.php
+│   ├── RecipeService.php
+│   ├── BookmarkService.php
+│   └── SearchService.php
+├── Models/                    # Eloquent models
+├── Traits/
+│   └── ApiResponse.php       # Consistent response formatting
+└── Providers/
+```
+
+### 📐 Prinsip yang Diterapkan
+
+#### 1. **Single Responsibility Principle (SRP)**
+- Controllers hanya handle HTTP request/response
+- Services mengandung business logic
+- Models hanya untuk database interaction
+
+#### 2. **DRY (Don't Repeat Yourself)**
+- Trait `ApiResponse` untuk unified response format
+- Service layer untuk reusable business logic
+- Form Requests untuk validation rules
+
+#### 3. **API Versioning**
+```php
+Route::prefix('v1')->group(function () {
+    // All v1 routes here
+});
+```
+
+#### 4. **Consistent Response Format**
 ```json
 {
   "success": true,
   "message": "Operation successful",
-  "data": { },
+  "data": {},
   "meta": {
-    "timestamp": "2025-11-27T10:00:00. 000000Z",
-    "request_id": "550e8400-e29b-41d4-a716-446655440000"
+    "timestamp": "2026-02-05T10:00:00.000000Z",
+    "request_id": "uuid"
   }
 }
 ```
 
-### Paginated Response
+#### 5. **Error Handling**
+- Global exception handling di `bootstrap/app.php`
+- Custom error responses untuk API
+- HTTP status codes yang sesuai (401, 404, 422, 500)
 
-```json
-{
-  "success": true,
-  "message": "Data retrieved successfully",
-  "data": [],
-  "pagination": {
-    "current_page": 1,
-    "last_page": 10,
-    "per_page": 10,
-    "total": 100,
-    "from": 1,
-    "to": 10,
-    "has_more_pages": true
-  },
-  "links": {
-    "first": "https://api.example.com/v1/recipes?page=1",
-    "last": "https://api.example.com/v1/recipes?page=10",
-    "prev": null,
-    "next": "https://api.example.com/v1/recipes?page=2"
-  },
-  "meta": {
-    "timestamp": "2025-11-27T10:00:00.000000Z",
-    "request_id": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
+#### 6. **Security Practices**
+- ✅ Input validation di semua endpoints
+- ✅ CSRF protection untuk web routes
+- ✅ Rate limiting
+- ✅ SQL injection protection (Eloquent ORM)
+- ✅ XSS protection (Laravel sanitization)
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- PHP 8.2 atau lebih tinggi
+- Composer
+- PostgreSQL 14+
+- Node.js & NPM (untuk asset compilation)
+
+### 1. Clone Repository
+```bash
+git clone https://github.com/Alfan345/cookchela-api.git
+cd cookchela-api
 ```
 
-### Error Response
+### 2. Install Dependencies
+```bash
+composer install
+npm install
+```
 
-```json
-{
-  "success": false,
-  "message": "Error message",
-  "errors": {
-    "field_name": ["Error detail 1", "Error detail 2"]
-  },
-  "meta": {
-    "timestamp": "2025-11-27T10:00:00.000000Z",
-    "request_id": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
+### 3. Environment Setup
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+Edit `.env` file:
+```env
+APP_NAME="CookChella API"
+APP_URL=http://localhost:8000
+
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=cookchela
+DB_USERNAME=your_username
+DB_PASSWORD=your_password
+
+# Supabase Storage
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+SUPABASE_BUCKET_AVATARS=avatars
+SUPABASE_BUCKET_RECIPES=recipes
+
+# Google OAuth (optional)
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+GOOGLE_REDIRECT_URI=http://localhost:8000/api/v1/auth/google/callback
+```
+
+### 4. Database Migration
+```bash
+php artisan migrate --seed
+```
+
+### 5. Run Development Server
+```bash
+composer run dev
+# Atau manual:
+php artisan serve
+```
+
+API akan tersedia di `http://localhost:8000/api/v1`
+
+### 🐳 Menggunakan Docker
+
+```bash
+# Build image
+docker build -t cookchela-api .
+
+# Run container
+docker run -p 8080:8080 --env-file .env cookchela-api
 ```
 
 ---
 
-## 1. Authentication
+## 📚 Dokumentasi API
 
-### 1.1 Register
+### Base URLs
 
-Mendaftarkan user baru dengan email dan password.
+| Environment | URL |
+|------------|-----|
+| **Production** | `https://cookchella-api.onrender.com/api/v1` |
+| **Development** | `http://localhost:8000/api/v1` |
+
+### Authentication
+
+Sebagian besar endpoints memerlukan Bearer Token:
 
 ```http
-POST /auth/register
+Authorization: Bearer {your_access_token}
 ```
 
-**Request Body:**
+### Core Endpoints
 
-| Field | Type | Required | Validation |
-|-------|------|----------|------------|
-| `name` | string | Yes | min:2, max:100 |
-| `username` | string | Yes | min:3, max:50, unique, alpha_dash |
-| `email` | string | Yes | email, unique, max:255 |
-| `password` | string | Yes | min:8, confirmed |
-| `password_confirmation` | string | Yes | same:password |
-
-```json
-{
-  "name": "John Doe",
-  "username": "johndoe",
-  "email": "john@example.com",
-  "password": "SecurePass123!",
-  "password_confirmation": "SecurePass123!"
-}
+#### 🔐 Authentication
+```http
+POST   /auth/register          # Register user baru
+POST   /auth/login             # Login dengan email/password
+POST   /auth/google            # Login dengan Google OAuth
+POST   /auth/logout            # Logout (hapus token)
+GET    /auth/me                # Get current user profile
 ```
 
-**Response Success (201 Created):**
+#### 👤 User Management
+```http
+GET    /users/{username}               # Get user profile
+GET    /users/{username}/recipes       # Get user's recipes
+GET    /users/{username}/followers     # Get followers list
+GET    /users/{username}/following     # Get following list
+POST   /users/{username}/follow        # Follow user
+DELETE /users/{username}/follow        # Unfollow user
+PUT    /users/profile                  # Update profile
+POST   /users/avatar                   # Update avatar
+```
 
+#### 🍳 Recipes
+```http
+GET    /recipes/timeline              # Get feed/timeline (public)
+GET    /recipes/recommendations       # Get personalized recommendations
+GET    /recipes/{id}                  # Get recipe detail
+POST   /recipes                       # Create recipe (auth)
+PUT    /recipes/{id}                  # Update recipe (auth)
+DELETE /recipes/{id}                  # Delete recipe (auth)
+POST   /recipes/{id}/like             # Like recipe (auth)
+DELETE /recipes/{id}/like             # Unlike recipe (auth)
+```
+
+#### 🔖 Bookmarks
+```http
+GET    /bookmarks                     # Get user's bookmarks
+POST   /bookmarks/{recipeId}          # Add bookmark
+DELETE /bookmarks/{recipeId}          # Remove bookmark
+GET    /bookmarks/{recipeId}/check    # Check if bookmarked
+```
+
+#### 🔍 Search
+```http
+GET    /search/recipes                         # Search recipes
+POST   /search/ingredients                     # Search by ingredients
+GET    /search/suggestions?q={query}           # Get autocomplete suggestions
+GET    /search/history                         # Get search history (auth)
+DELETE /search/history                         # Clear all history (auth)
+DELETE /search/history/{keyword}               # Delete specific history (auth)
+```
+
+#### 📊 Master Data
+```http
+GET    /master/categories             # Get all categories
+GET    /master/difficulty-levels      # Get difficulty levels
+GET    /master/cooking-times          # Get cooking time ranges
+```
+
+### Request Example
+
+**Create Recipe:**
+```bash
+curl -X POST https://cookchella-api.onrender.com/api/v1/recipes \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: multipart/form-data" \
+  -F "title=Nasi Goreng Spesial" \
+  -F "image=@/path/to/image.jpg" \
+  -F "description=Nasi goreng dengan bumbu rahasia" \
+  -F "cooking_time=30" \
+  -F "servings=2" \
+  -F "category_id=2" \
+  -F "difficulty_level=easy" \
+  -F "ingredients[0][name]=Nasi" \
+  -F "ingredients[0][quantity]=500" \
+  -F "ingredients[0][unit]=gram" \
+  -F "steps[0][description]=Panaskan minyak di wajan"
+```
+
+### Response Example
+
+**Success Response:**
 ```json
 {
   "success": true,
-  "message": "Registrasi berhasil",
+  "message": "Resep berhasil dibuat",
   "data": {
-    "user": {
+    "id": 123,
+    "title": "Nasi Goreng Spesial",
+    "image_url": "https://storage.example.com/recipes/...",
+    "author": {
       "id": 1,
-      "name": "John Doe",
-      "username": "johndoe",
-      "email": "john@example. com",
-      "avatar_url": null,
-      "followers_count": 0,
-      "following_count": 0,
-      "recipes_count": 0,
-      "created_at": "2025-11-27T10:00:00.000000Z"
+      "username": "chef_alfan",
+      "name": "Alfan",
+      "avatar_url": "https://..."
     },
-    "token": {
-      "access_token": "1|laravel_sanctum_token_here.. .",
-      "token_type": "Bearer",
-      "expires_at": "2025-12-27T10:00:00.000000Z"
-    }
-  },
-  "meta": {
-    "timestamp": "2025-11-27T10:00:00.000000Z",
-    "request_id": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
-```
-
-**Response Error (422 Unprocessable Entity):**
-
-```json
-{
-  "success": false,
-  "message": "Validasi gagal",
-  "errors": {
-    "email": ["Email sudah terdaftar"],
-    "username": ["Username sudah digunakan"],
-    "password": ["Password minimal 8 karakter"]
-  },
-  "meta": {
-    "timestamp": "2025-11-27T10:00:00.000000Z",
-    "request_id": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
-```
-
----
-
-### 1.2 Login
-
-Autentikasi user dengan email dan password.
-
-```http
-POST /auth/login
-```
-
-**Request Body:**
-
-| Field | Type | Required | Validation |
-|-------|------|----------|------------|
-| `email` | string | Yes | email |
-| `password` | string | Yes | min:1 |
-| `device_name` | string | No | max:255 (untuk Sanctum token) |
-
-```json
-{
-  "email": "john@example.com",
-  "password": "SecurePass123!",
-  "device_name": "Samsung Galaxy S21"
-}
-```
-
-**Response Success (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Login berhasil",
-  "data": {
-    "user": {
-      "id": 1,
-      "name": "John Doe",
-      "username": "johndoe",
-      "email": "john@example.com",
-      "avatar_url": "https://xxxx. supabase.co/storage/v1/object/public/avatars/1/avatar.jpg",
-      "followers_count": 100,
-      "following_count": 50,
-      "recipes_count": 25,
-      "language": "id",
-      "created_at": "2025-11-27T10:00:00.000000Z"
-    },
-    "token": {
-      "access_token": "1|laravel_sanctum_token_here...",
-      "token_type": "Bearer",
-      "expires_at": "2025-12-27T10:00:00.000000Z"
-    }
-  },
-  "meta": {
-    "timestamp": "2025-11-27T10:00:00.000000Z",
-    "request_id": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
-```
-
-**Response Error (401 Unauthorized):**
-
-```json
-{
-  "success": false,
-  "message": "Email atau password salah",
-  "errors": null,
-  "meta": {
-    "timestamp": "2025-11-27T10:00:00.000000Z",
-    "request_id": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
-```
-
----
-
-### 1.3 Login dengan Google (OAuth)
-
-Login menggunakan Google OAuth.  Flutter akan mendapatkan ID Token dari Google Sign-In, kemudian mengirimkannya ke backend.
-
-```http
-POST /auth/google
-```
-
-**Request Body:**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id_token` | string | Yes | Google ID Token dari Flutter |
-| `device_name` | string | No | Nama device untuk token |
-
-```json
-{
-  "id_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "device_name": "iPhone 14 Pro"
-}
-```
-
-**Response Success (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Login dengan Google berhasil",
-  "data": {
-    "user": {
-      "id": 1,
-      "name": "John Doe",
-      "username": "johndoe_g123",
-      "email": "john@gmail.com",
-      "avatar_url": "https://lh3.googleusercontent.com/a/xxx",
-      "followers_count": 0,
-      "following_count": 0,
-      "recipes_count": 0,
-      "language": "id",
-      "created_at": "2025-11-27T10:00:00.000000Z"
-    },
-    "token": {
-      "access_token": "1|laravel_sanctum_token_here...",
-      "token_type": "Bearer",
-      "expires_at": "2025-12-27T10:00:00.000000Z"
-    },
-    "is_new_user": true
-  },
-  "meta": {
-    "timestamp": "2025-11-27T10:00:00. 000000Z",
-    "request_id": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
-```
-
----
-
-### 1.4 Logout
-
-Mencabut token akses user saat ini.
-
-```http
-POST /auth/logout
-```
-
-**Headers:**
-
-```http
-Authorization: Bearer {access_token}
-```
-
-**Response Success (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Logout berhasil",
-  "data": null,
-  "meta": {
-    "timestamp": "2025-11-27T10:00:00.000000Z",
-    "request_id": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
-```
-
----
-
-### 1.5 Refresh Token
-
-Mendapatkan token baru sebelum token lama expired.
-
-```http
-POST /auth/refresh
-```
-
-**Headers:**
-
-```http
-Authorization: Bearer {access_token}
-```
-
-**Response Success (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Token berhasil diperbarui",
-  "data": {
-    "token": {
-      "access_token": "2|new_laravel_sanctum_token_here...",
-      "token_type": "Bearer",
-      "expires_at": "2025-12-28T10:00:00.000000Z"
-    }
-  },
-  "meta": {
-    "timestamp": "2025-11-27T10:00:00.000000Z",
-    "request_id": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
-```
-
----
-
-### 1.6 Check Auth Status
-
-Mengecek apakah token masih valid.
-
-```http
-GET /auth/check
-```
-
-**Headers:**
-
-```http
-Authorization: Bearer {access_token}
-```
-
-**Response Success (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Token valid",
-  "data": {
-    "authenticated": true,
-    "user_id": 1,
-    "token_expires_at": "2025-12-27T10:00:00.000000Z"
-  },
-  "meta": {
-    "timestamp": "2025-11-27T10:00:00.000000Z",
-    "request_id": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
-```
-
----
-
-## 2. User Management
-
-### 2.1 Get Current User Profile
-
-Mendapatkan profil user yang sedang login.
-
-```http
-GET /user/profile
-```
-
-**Headers:**
-
-```http
-Authorization: Bearer {access_token}
-```
-
-**Response Success (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Profil berhasil diambil",
-  "data": {
-    "id": 1,
-    "name": "User PyTorch",
-    "username": "userpytorch6",
-    "email": "pytorch@example.com",
-    "avatar_url": "https://xxxx.supabase.co/storage/v1/object/public/avatars/1/avatar. jpg",
-    "followers_count": 100,
-    "following_count": 50,
-    "recipes_count": 25,
-    "language": "id",
-    "email_verified_at": "2025-11-27T10:00:00.000000Z",
-    "created_at": "2025-11-27T10:00:00.000000Z",
-    "updated_at": "2025-11-27T10:00:00.000000Z"
-  },
-  "meta": {
-    "timestamp": "2025-11-27T10:00:00.000000Z",
-    "request_id": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
-```
-
----
-
-### 2.2 Update Profile
-
-Mengupdate profil user (name, username, avatar).
-
-```http
-PUT /user/profile
-```
-
-**Headers:**
-
-```http
-Authorization: Bearer {access_token}
-Content-Type: multipart/form-data
-```
-
-**Request Body (multipart/form-data):**
-
-| Field | Type | Required | Validation |
-|-------|------|----------|------------|
-| `name` | string | No | min:2, max:100 |
-| `username` | string | No | min:3, max:50, unique, alpha_dash |
-| `avatar` | file | No | image, mimes:jpeg,png,jpg,webp, max:2048 |
-
-**Response Success (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Profil berhasil diperbarui",
-  "data": {
-    "id": 1,
-    "name": "New Name",
-    "username": "newusername",
-    "email": "pytorch@example.com",
-    "avatar_url": "https://xxxx.supabase.co/storage/v1/object/public/avatars/1/avatar_1701234567.jpg",
-    "followers_count": 100,
-    "following_count": 50,
-    "recipes_count": 25,
-    "language": "id",
-    "created_at": "2025-11-27T10:00:00.000000Z",
-    "updated_at": "2025-11-27T12:00:00.000000Z"
-  },
-  "meta": {
-    "timestamp": "2025-11-27T12:00:00.000000Z",
-    "request_id": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
-```
-
----
-
-### 2.3 Update Language
-
-Mengubah preferensi bahasa user.
-
-```http
-PUT /user/language
-```
-
-**Headers:**
-
-```http
-Authorization: Bearer {access_token}
-```
-
-**Request Body:**
-
-| Field | Type | Required | Validation |
-|-------|------|----------|------------|
-| `language` | string | Yes | in:id,en |
-
-```json
-{
-  "language": "en"
-}
-```
-
-**Response Success (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Bahasa berhasil diperbarui",
-  "data": {
-    "language": "en"
-  },
-  "meta": {
-    "timestamp": "2025-11-27T10:00:00.000000Z",
-    "request_id": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
-```
-
----
-
-### 2.4 Get User by Username
-
-Mendapatkan profil public user berdasarkan username. 
-
-```http
-GET /users/{username}
-```
-
-**Path Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `username` | string | Username user |
-
-**Response Success (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Data user berhasil diambil",
-  "data": {
-    "id": 2,
-    "name": "User 1",
-    "username": "user1",
-    "avatar_url": "https://xxxx.supabase.co/storage/v1/object/public/avatars/2/avatar.jpg",
-    "followers_count": 100,
-    "following_count": 50,
-    "recipes_count": 25,
-    "is_followed": false,
-    "created_at": "2025-11-27T10:00:00. 000000Z"
-  },
-  "meta": {
-    "timestamp": "2025-11-27T10:00:00.000000Z",
-    "request_id": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
-```
-
----
-
-### 2.5 Follow User
-
-Mengikuti user lain.
-
-```http
-POST /users/{username}/follow
-```
-
-**Path Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `username` | string | Username user yang akan di-follow |
-
-**Headers:**
-
-```http
-Authorization: Bearer {access_token}
-```
-
-**Response Success (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Berhasil mengikuti user",
-  "data": {
-    "is_followed": true,
-    "followers_count": 101
-  },
-  "meta": {
-    "timestamp": "2025-11-27T10:00:00.000000Z",
-    "request_id": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
-```
-
----
-
-### 2.6 Unfollow User
-
-Berhenti mengikuti user. 
-
-```http
-DELETE /users/{username}/follow
-```
-
-**Path Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `username` | string | Username user yang akan di-unfollow |
-
-**Headers:**
-
-```http
-Authorization: Bearer {access_token}
-```
-
-**Response Success (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Berhasil berhenti mengikuti user",
-  "data": {
-    "is_followed": false,
-    "followers_count": 100
-  },
-  "meta": {
-    "timestamp": "2025-11-27T10:00:00.000000Z",
-    "request_id": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
-```
-
----
-
-## 3. Recipes
-
-### 3.1 Get Timeline (Feed)
-
-Mendapatkan feed timeline resep terbaru.
-
-```http
-GET /recipes/timeline
-```
-
-**Headers:**
-
-```http
-Authorization: Bearer {access_token}
-```
-
-**Query Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `page` | integer | 1 | Nomor halaman |
-| `per_page` | integer | 10 | Jumlah item per halaman (max: 50) |
-
-**Response Success (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Timeline berhasil diambil",
-  "data": [
-    {
-      "id": 1,
-      "title": "Chicken Katsu ala Hokben",
-      "image_url": "https://xxxx.supabase.co/storage/v1/object/public/recipes/1/image.jpg",
-      "description": "Lorem ipsum dolor sit amet consectetur.. .",
-      "cooking_time": 60,
-      "servings": 3,
-      "likes_count": 2500,
-      "bookmarks_count": 150,
-      "is_liked": false,
-      "is_bookmarked": true,
-      "user": {
-        "id": 1,
-        "name": "User 1",
-        "username": "user1",
-        "avatar_url": "https://xxxx. supabase.co/storage/v1/object/public/avatars/1/avatar.jpg"
-      },
-      "created_at": "2025-11-27T10:00:00. 000000Z"
-    },
-    {
-      "id": 2,
-      "title": "Ayam Goreng Mentega",
-      "image_url": "https://xxxx.supabase.co/storage/v1/object/public/recipes/2/image.jpg",
-      "description": "Resep ayam goreng mentega yang lezat...",
-      "cooking_time": 45,
-      "servings": 4,
-      "likes_count": 1800,
-      "bookmarks_count": 120,
-      "is_liked": true,
-      "is_bookmarked": false,
-      "user": {
-        "id": 2,
-        "name": "User 2",
-        "username": "user2",
-        "avatar_url": null
-      },
-      "created_at": "2025-11-26T10:00:00.000000Z"
-    }
-  ],
-  "pagination": {
-    "current_page": 1,
-    "last_page": 10,
-    "per_page": 10,
-    "total": 100,
-    "from": 1,
-    "to": 10,
-    "has_more_pages": true
-  },
-  "links": {
-    "first": "https://cookchella-api.onrender.com/api/v1/recipes/timeline?page=1",
-    "last": "https://cookchella-api.onrender.com/api/v1/recipes/timeline?page=10",
-    "prev": null,
-    "next": "https://cookchella-api.onrender.com/api/v1/recipes/timeline?page=2"
-  },
-  "meta": {
-    "timestamp": "2025-11-27T10:00:00.000000Z",
-    "request_id": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
-```
-
----
-
-### 3. 2 Get Recipe Recommendations
-
-Mendapatkan rekomendasi resep untuk section "Coba masak ini". 
-
-```http
-GET /recipes/recommendations
-```
-
-**Headers:**
-
-```http
-Authorization: Bearer {access_token}
-```
-
-**Query Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `limit` | integer | 5 | Jumlah rekomendasi (max: 10) |
-
-**Response Success (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Rekomendasi resep berhasil diambil",
-  "data": [
-    {
-      "id": 1,
-      "title": "Chicken Katsu ala Hokben",
-      "image_url": "https://xxxx.supabase.co/storage/v1/object/public/recipes/1/image.jpg",
-      "cooking_time": 60,
-      "likes_count": 2500
-    },
-    {
-      "id": 3,
-      "title": "Pisang Goreng Madu",
-      "image_url": "https://xxxx.supabase.co/storage/v1/object/public/recipes/3/image.jpg",
-      "cooking_time": 30,
-      "likes_count": 1500
-    }
-  ],
-  "meta": {
-    "timestamp": "2025-11-27T10:00:00.000000Z",
-    "request_id": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
-```
-
----
-
-### 3.3 Get Recipe Detail
-
-Mendapatkan detail lengkap resep.
-
-```http
-GET /recipes/{id}
-```
-
-**Path Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | integer | ID resep |
-
-**Headers:**
-
-```http
-Authorization: Bearer {access_token} (optional untuk guest)
-```
-
-**Response Success (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Detail resep berhasil diambil",
-  "data": {
-    "id": 1,
-    "title": "Chicken Katsu ala Hokben",
-    "image_url": "https://xxxx.supabase.co/storage/v1/object/public/recipes/1/image.jpg",
-    "description": "Lorem ipsum dolor sit amet consectetur.  Felis ac mi scelerisque non.  Tempus fermentum sed pharetra ac rhoncus cursus erat lectus sodales.",
-    "cooking_time": 60,
-    "servings": 3,
-    "likes_count": 2500,
-    "bookmarks_count": 150,
-    "is_liked": false,
-    "is_bookmarked": true,
-    "user": {
-      "id": 1,
-      "name": "User 1",
-      "username": "user1",
-      "avatar_url": "https://xxxx.supabase.co/storage/v1/object/public/avatars/1/avatar.jpg",
-      "followers_count": 100,
-      "is_followed": false
-    },
-    "ingredients": [
-      {
-        "id": 1,
-        "name": "Dada Ayam",
-        "quantity": "500",
-        "unit": "gram"
-      },
-      {
-        "id": 2,
-        "name": "Tepung Panir",
-        "quantity": "200",
-        "unit": "gram"
-      },
-      {
-        "id": 3,
-        "name": "Telur",
-        "quantity": "2",
-        "unit": "butir"
-      },
-      {
-        "id": 4,
-        "name": "Garam",
-        "quantity": "1",
-        "unit": "sdt"
-      }
-    ],
-    "steps": [
-      {
-        "id": 1,
-        "step_number": 1,
-        "description": "Potong dada ayam menjadi lembaran tipis",
-        "image_url": null
-      },
-      {
-        "id": 2,
-        "step_number": 2,
-        "description": "Kocok telur dalam mangkuk",
-        "image_url": null
-      },
-      {
-        "id": 3,
-        "step_number": 3,
-        "description": "Celupkan ayam ke telur lalu gulingkan ke tepung panir",
-        "image_url": null
-      },
-      {
-        "id": 4,
-        "step_number": 4,
-        "description": "Goreng dalam minyak panas hingga golden brown",
-        "image_url": null
-      }
-    ],
-    "created_at": "2025-11-27T10:00:00. 000000Z",
-    "updated_at": "2025-11-27T10:00:00.000000Z"
-  },
-  "meta": {
-    "timestamp": "2025-11-27T10:00:00.000000Z",
-    "request_id": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
-```
-
----
-
-### 3. 4 Create Recipe
-
-Membuat resep baru.
-
-```http
-POST /recipes
-```
-
-**Headers:**
-
-```http
-Authorization: Bearer {access_token}
-Content-Type: multipart/form-data
-```
-
-**Request Body (multipart/form-data):**
-
-| Field | Type | Required | Validation |
-|-------|------|----------|------------|
-| `title` | string | Yes | min:3, max:255 |
-| `image` | file | Yes | image, mimes:jpeg,png,jpg,webp, max:5120 |
-| `description` | string | No | max:1000 |
-| `cooking_time` | integer | No | min:1 (dalam menit) |
-| `servings` | integer | No | min:1 |
-| `ingredients` | array | Yes | min:1 |
-| `ingredients[*][name]` | string | Yes | max:100 |
-| `ingredients[*][quantity]` | string | Yes | max:50 |
-| `ingredients[*][unit]` | string | Yes | max:50 |
-| `steps` | array | Yes | min:1 |
-| `steps[*][description]` | string | Yes | max:500 |
-
-**Example Request (Flutter - Dio):**
-
-```dart
-final formData = FormData.fromMap({
-  'title': 'Chicken Katsu ala Hokben',
-  'image': await MultipartFile.fromFile(imagePath, filename: 'recipe.jpg'),
-  'description': 'Resep chicken katsu yang enak dan mudah dibuat',
-  'cooking_time': 60,
-  'servings': 3,
-  'ingredients[0][name]': 'Dada Ayam',
-  'ingredients[0][quantity]': '500',
-  'ingredients[0][unit]': 'gram',
-  'ingredients[1][name]': 'Tepung Panir',
-  'ingredients[1][quantity]': '200',
-  'ingredients[1][unit]': 'gram',
-  'steps[0][description]': 'Potong dada ayam menjadi lembaran tipis',
-  'steps[1][description]': 'Lumuri dengan tepung panir',
-});
-```
-
-**Response Success (201 Created):**
-
-```json
-{
-  "success": true,
-  "message": "Resep berhasil dibagikan",
-  "data": {
-    "id": 10,
-    "title": "Chicken Katsu ala Hokben",
-    "image_url": "https://xxxx.supabase.co/storage/v1/object/public/recipes/10/image_1701234567.jpg",
-    "description": "Resep chicken katsu yang enak dan mudah dibuat",
-    "cooking_time": 60,
-    "servings": 3,
+    "cooking_time": 30,
+    "servings": 2,
     "likes_count": 0,
-    "bookmarks_count": 0,
     "is_liked": false,
-    "is_bookmarked": false,
-    "user": {
-      "id": 1,
-      "name": "User 1",
-      "username": "user1",
-      "avatar_url": "https://xxxx.supabase.co/storage/v1/object/public/avatars/1/avatar.jpg"
-    },
-    "ingredients": [
-      {
-        "id": 1,
-        "name": "Dada Ayam",
-        "quantity": "500",
-        "unit": "gram"
-      },
-      {
-        "id": 2,
-        "name": "Tepung Panir",
-        "quantity": "200",
-        "unit": "gram"
-      }
-    ],
-    "steps": [
-      {
-        "id": 1,
-        "step_number": 1,
-        "description": "Potong dada ayam menjadi lembaran tipis",
-        "image_url": null
-      },
-      {
-        "id": 2,
-        "step_number": 2,
-        "description": "Lumuri dengan tepung panir",
-        "image_url": null
-      }
-    ],
-    "created_at": "2025-11-27T12:00:00.000000Z",
-    "updated_at": "2025-11-27T12:00:00.000000Z"
+    "is_bookmarked": false
   },
   "meta": {
-    "timestamp": "2025-11-27T12:00:00.000000Z",
+    "timestamp": "2026-02-05T10:00:00.000000Z",
     "request_id": "550e8400-e29b-41d4-a716-446655440000"
   }
 }
 ```
 
----
-
-### 3. 5 Update Recipe
-
-Mengupdate resep yang sudah ada.  Hanya pemilik resep yang dapat mengupdate.
-
-```http
-PUT /recipes/{id}
-POST /recipes/{id}? _method=PUT
-```
-
-**Path Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | integer | ID resep |
-
-**Headers:**
-
-```http
-Authorization: Bearer {access_token}
-Content-Type: multipart/form-data
-```
-
-**Request Body (multipart/form-data):**
-
-| Field | Type | Required | Validation |
-|-------|------|----------|------------|
-| `title` | string | No | min:3, max:255 |
-| `image` | file | No | image, mimes:jpeg,png,jpg,webp, max:5120 |
-| `description` | string | No | max:1000 |
-| `cooking_time` | integer | No | min:1 |
-| `servings` | integer | No | min:1 |
-| `ingredients` | array | No | min:1 (akan replace semua ingredients) |
-| `steps` | array | No | min:1 (akan replace semua steps) |
-
-**Response Success (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Resep berhasil diperbarui",
-  "data": {
-    "id": 10,
-    "title": "Updated Chicken Katsu",
-    "image_url": "https://xxxx.supabase.co/storage/v1/object/public/recipes/10/image_1701234999.jpg",
-    ... 
-  },
-  "meta": {
-    "timestamp": "2025-11-27T14:00:00.000000Z",
-    "request_id": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
-```
-
----
-
-### 3.6 Delete Recipe
-
-Menghapus resep.  Hanya pemilik resep yang dapat menghapus. 
-
-```http
-DELETE /recipes/{id}
-```
-
-**Path Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | integer | ID resep |
-
-**Headers:**
-
-```http
-Authorization: Bearer {access_token}
-```
-
-**Response Success (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Resep berhasil dihapus",
-  "data": null,
-  "meta": {
-    "timestamp": "2025-11-27T10:00:00.000000Z",
-    "request_id": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
-```
-
----
-
-### 3.7 Like Recipe
-
-Memberikan like pada resep. 
-
-```http
-POST /recipes/{id}/like
-```
-
-**Path Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | integer | ID resep |
-
-**Headers:**
-
-```http
-Authorization: Bearer {access_token}
-```
-
-**Response Success (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Resep berhasil disukai",
-  "data": {
-    "is_liked": true,
-    "likes_count": 2501
-  },
-  "meta": {
-    "timestamp": "2025-11-27T10:00:00.000000Z",
-    "request_id": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
-```
-
----
-
-### 3.8 Unlike Recipe
-
-Menghapus like dari resep.
-
-```http
-DELETE /recipes/{id}/like
-```
-
-**Path Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | integer | ID resep |
-
-**Headers:**
-
-```http
-Authorization: Bearer {access_token}
-```
-
-**Response Success (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Like berhasil dihapus",
-  "data": {
-    "is_liked": false,
-    "likes_count": 2500
-  },
-  "meta": {
-    "timestamp": "2025-11-27T10:00:00.000000Z",
-    "request_id": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
-```
-
----
-
-### 3.9 Get User Recipes
-
-Mendapatkan daftar resep milik user tertentu.
-
-```http
-GET /users/{username}/recipes
-```
-
-**Path Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `username` | string | Username user |
-
-**Query Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `page` | integer | 1 | Nomor halaman |
-| `per_page` | integer | 10 | Jumlah item per halaman |
-
-**Response Success (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Daftar resep berhasil diambil",
-  "data": [
-    {
-      "id": 1,
-      "title": "Chicken Katsu ala Hokben",
-      "image_url": "https://xxxx.supabase.co/storage/v1/object/public/recipes/1/image.jpg",
-      "cooking_time": 60,
-      "servings": 3,
-      "likes_count": 2500,
-      "created_at": "2025-11-27T10:00:00.000000Z"
-    }
-  ],
-  "pagination": {... },
-  "links": {...},
-  "meta": {... }
-}
-```
-
----
-
-## 4. Bookmarks
-
-### 4.1 Get User Bookmarks
-
-Mendapatkan daftar resep yang di-bookmark oleh user. 
-
-```http
-GET /bookmarks
-```
-
-**Headers:**
-
-```http
-Authorization: Bearer {access_token}
-```
-
-**Query Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `page` | integer | 1 | Nomor halaman |
-| `per_page` | integer | 10 | Jumlah item per halaman |
-
-**Response Success (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Daftar bookmark berhasil diambil",
-  "data": [
-    {
-      "id": 1,
-      "bookmarked_at": "2025-11-27T10:00:00.000000Z",
-      "recipe": {
-        "id": 1,
-        "title": "Chicken Katsu ala Hokben",
-        "image_url": "https://xxxx.supabase.co/storage/v1/object/public/recipes/1/image.jpg",
-        "cooking_time": 60,
-        "servings": 3,
-        "likes_count": 2500,
-        "ingredients": [
-          {
-            "id": 1,
-            "name": "Dada Ayam",
-            "quantity": "500",
-            "unit": "gram"
-          }
-        ],
-        "steps": [
-          {
-            "id": 1,
-            "step_number": 1,
-            "description": "Masukkan lorem ke dalam wajan"
-          }
-        ],
-        "user": {
-          "id": 1,
-          "name": "User 1",
-          "username": "user1",
-          "avatar_url": "..."
-        }
-      }
-    }
-  ],
-  "pagination": {
-    "current_page": 1,
-    "last_page": 5,
-    "per_page": 10,
-    "total": 45,
-    "from": 1,
-    "to": 10,
-    "has_more_pages": true
-  },
-  "links": {... },
-  "meta": {...}
-}
-```
-
----
-
-### 4.2 Add Bookmark
-
-Menambahkan resep ke bookmark.
-
-```http
-POST /recipes/{id}/bookmark
-```
-
-**Path Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | integer | ID resep |
-
-**Headers:**
-
-```http
-Authorization: Bearer {access_token}
-```
-
-**Response Success (201 Created):**
-
-```json
-{
-  "success": true,
-  "message": "Resep berhasil ditambahkan ke bookmark",
-  "data": {
-    "is_bookmarked": true,
-    "bookmarks_count": 151
-  },
-  "meta": {
-    "timestamp": "2025-11-27T10:00:00.000000Z",
-    "request_id": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
-```
-
----
-
-### 4.3 Remove Bookmark
-
-Menghapus resep dari bookmark.
-
-```http
-DELETE /recipes/{id}/bookmark
-```
-
-**Path Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | integer | ID resep |
-
-**Headers:**
-
-```http
-Authorization: Bearer {access_token}
-```
-
-**Response Success (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Resep berhasil dihapus dari bookmark",
-  "data": {
-    "is_bookmarked": false,
-    "bookmarks_count": 150
-  },
-  "meta": {
-    "timestamp": "2025-11-27T10:00:00.000000Z",
-    "request_id": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
-```
-
----
-
-## 5. Search
-
-### 5.1 Search Recipes
-
-Mencari resep berdasarkan keyword dan filter bahan.
-
-```http
-GET /search
-```
-
-**Headers:**
-
-```http
-Authorization: Bearer {access_token} (optional)
-```
-
-**Query Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `q` | string | null | Keyword pencarian |
-| `ingredients[]` | array | null | Array ID master ingredients untuk filter |
-| `category` | string | null | Slug kategori (protein, bumbu_rempah, sayur, produk_olahan) |
-| `cooking_time_max` | integer | null | Filter waktu masak maksimal (menit) |
-| `sort_by` | string | latest | Sorting: latest, popular, cooking_time |
-| `sort_order` | string | desc | asc atau desc |
-| `page` | integer | 1 | Nomor halaman |
-| `per_page` | integer | 10 | Jumlah item per halaman |
-
-**Example Request:**
-
-```http
-GET /search? q=ayam&ingredients[]=1&ingredients[]=3&sort_by=popular&page=1
-```
-
-**Response Success (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Hasil pencarian",
-  "data": [
-    {
-      "id": 1,
-      "title": "Ayam Goreng Mentega",
-      "image_url": "https://xxxx.supabase.co/storage/v1/object/public/recipes/1/image.jpg",
-      "description": "Resep ayam goreng mentega yang lezat.. .",
-      "cooking_time": 45,
-      "servings": 4,
-      "likes_count": 2500,
-      "is_liked": true,
-      "is_bookmarked": false,
-      "user": {
-        "id": 1,
-        "name": "User 1",
-        "username": "user1",
-        "avatar_url": "..."
-      },
-      "created_at": "2025-11-27T10:00:00.000000Z"
-    }
-  ],
-  "pagination": {
-    "current_page": 1,
-    "last_page": 3,
-    "per_page": 10,
-    "total": 25,
-    "from": 1,
-    "to": 10,
-    "has_more_pages": true
-  },
-  "filters_applied": {
-    "query": "ayam",
-    "ingredients": [1, 3],
-    "category": null,
-    "sort_by": "popular",
-    "sort_order": "desc"
-  },
-  "links": {...},
-  "meta": {...}
-}
-```
-
----
-
-### 5.2 Get Filter Options
-
-Mendapatkan opsi filter bahan (master ingredients) yang tersedia.
-
-```http
-GET /search/filters
-```
-
-**Response Success (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Filter options berhasil diambil",
-  "data": {
-    "categories": [
-      {
-        "id": 1,
-        "name": "Protein",
-        "slug": "protein",
-        "ingredients": [
-          {"id": 1, "name": "Sapi", "slug": "sapi"},
-          {"id": 2, "name": "Ayam", "slug": "ayam"},
-          {"id": 3, "name": "Ikan", "slug": "ikan"},
-          {"id": 4, "name": "Udang", "slug": "udang"},
-          {"id": 5, "name": "Telur", "slug": "telur"},
-          {"id": 6, "name": "Tahu", "slug": "tahu"},
-          {"id": 7, "name": "Tempe", "slug": "tempe"}
-        ]
-      },
-      {
-        "id": 2,
-        "name": "Bumbu & Rempah",
-        "slug": "bumbu_rempah",
-        "ingredients": [
-          {"id": 8, "name": "Cabe", "slug": "cabe"},
-          {"id": 9, "name": "Kayu Manis", "slug": "kayu_manis"},
-          {"id": 10, "name": "Bawang Merah", "slug": "bawang_merah"},
-          {"id": 11, "name": "Bawang Putih", "slug": "bawang_putih"}
-        ]
-      },
-      {
-        "id": 3,
-        "name": "Sayur",
-        "slug": "sayur",
-        "ingredients": [
-          {"id": 12, "name": "Wortel", "slug": "wortel"},
-          {"id": 13, "name": "Bayam", "slug": "bayam"},
-          {"id": 14, "name": "Terong", "slug": "terong"},
-          {"id": 15, "name": "Sawi", "slug": "sawi"}
-        ]
-      },
-      {
-        "id": 4,
-        "name": "Produk Olahan",
-        "slug": "produk_olahan",
-        "ingredients": [
-          {"id": 16, "name": "Sosis", "slug": "sosis"},
-          {"id": 17, "name": "Bakso", "slug": "bakso"}
-        ]
-      }
-    ]
-  },
-  "meta": {... }
-}
-```
-
----
-
-### 5.3 Get Search History
-
-Mendapatkan riwayat pencarian user.
-
-```http
-GET /search/history
-```
-
-**Headers:**
-
-```http
-Authorization: Bearer {access_token}
-```
-
-**Query Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `limit` | integer | 10 | Jumlah history (max: 20) |
-
-**Response Success (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Riwayat pencarian berhasil diambil",
-  "data": [
-    {
-      "id": 1,
-      "keyword": "Ayam Goreng Mentega",
-      "recipe": {
-        "id": 2,
-        "title": "Ayam Goreng Mentega",
-        "image_url": "https://xxxx.supabase.co/storage/v1/object/public/recipes/2/image.jpg"
-      },
-      "searched_at": "2025-11-27T10:00:00.000000Z"
-    },
-    {
-      "id": 2,
-      "keyword": "Ayam Goreng Asam Manis",
-      "recipe": null,
-      "searched_at": "2025-10-28T10:00:00.000000Z"
-    }
-  ],
-  "meta": {...}
-}
-```
-
----
-
-### 5.4 Clear Search History
-
-Menghapus semua riwayat pencarian user.
-
-```http
-DELETE /search/history
-```
-
-**Headers:**
-
-```http
-Authorization: Bearer {access_token}
-```
-
-**Response Success (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Riwayat pencarian berhasil dihapus",
-  "data": null,
-  "meta": {... }
-}
-```
-
----
-
-## 6. Master Data
-
-### 6.1 Get Ingredient Categories
-
-Mendapatkan daftar kategori bahan. 
-
-```http
-GET /master/ingredient-categories
-```
-
-**Response Success (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Kategori bahan berhasil diambil",
-  "data": [
-    {
-      "id": 1,
-      "name": "Protein",
-      "slug": "protein"
-    },
-    {
-      "id": 2,
-      "name": "Bumbu & Rempah",
-      "slug": "bumbu_rempah"
-    },
-    {
-      "id": 3,
-      "name": "Sayur",
-      "slug": "sayur"
-    },
-    {
-      "id": 4,
-      "name": "Produk Olahan",
-      "slug": "produk_olahan"
-    }
-  ],
-  "meta": {...}
-}
-```
-
----
-
-### 6.2 Get Master Ingredients
-
-Mendapatkan daftar master ingredients. 
-
-```http
-GET /master/ingredients
-```
-
-**Query Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `category_id` | integer | null | Filter by category ID |
-| `category_slug` | string | null | Filter by category slug |
-
-**Response Success (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Master ingredients berhasil diambil",
-  "data": [
-    {
-      "id": 1,
-      "name": "Sapi",
-      "slug": "sapi",
-      "category": {
-        "id": 1,
-        "name": "Protein",
-        "slug": "protein"
-      }
-    }
-  ],
-  "meta": {...}
-}
-```
-
----
-
-## 7. Error Handling
-
-### HTTP Status Codes
-
-| Status Code | Description |
-|-------------|-------------|
-| `200` | OK - Request berhasil |
-| `201` | Created - Resource berhasil dibuat |
-| `204` | No Content - Request berhasil tanpa response body |
-| `400` | Bad Request - Request tidak valid |
-| `401` | Unauthorized - Token tidak valid atau tidak ada |
-| `403` | Forbidden - Tidak memiliki akses |
-| `404` | Not Found - Resource tidak ditemukan |
-| `422` | Unprocessable Entity - Validasi gagal |
-| `429` | Too Many Requests - Rate limit exceeded |
-| `500` | Internal Server Error - Error server |
-
-### Error Response Examples
-
-**401 Unauthorized:**
-
+**Error Response:**
 ```json
 {
   "success": false,
-  "message": "Unauthenticated",
-  "errors": null,
-  "meta": {
-    "timestamp": "2025-11-27T10:00:00.000000Z",
-    "request_id": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
-```
-
-**403 Forbidden:**
-
-```json
-{
-  "success": false,
-  "message": "Anda tidak memiliki akses untuk melakukan aksi ini",
-  "errors": null,
-  "meta": {... }
-}
-```
-
-**404 Not Found:**
-
-```json
-{
-  "success": false,
-  "message": "Resep tidak ditemukan",
-  "errors": null,
-  "meta": {...}
-}
-```
-
-**422 Validation Error:**
-
-```json
-{
-  "success": false,
-  "message": "Validasi gagal",
+  "message": "Validation failed",
   "errors": {
-    "title": ["Nama resep wajib diisi"],
-    "image": ["Foto resep wajib diupload", "Ukuran maksimal 5MB"],
-    "ingredients": ["Minimal 1 bahan diperlukan"]
+    "title": ["The title field is required."],
+    "cooking_time": ["The cooking time must be at least 1."]
   },
-  "meta": {...}
+  "meta": {
+    "timestamp": "2026-02-05T10:00:00.000000Z",
+    "request_id": "..."
+  }
 }
 ```
 
-**429 Rate Limit:**
+### 📖 Full API Documentation
 
-```json
-{
-  "success": false,
-  "message": "Terlalu banyak request.  Silakan coba lagi dalam 60 detik.",
-  "errors": {
-    "retry_after": 60
-  },
-  "meta": {...}
-}
+Untuk dokumentasi lengkap dengan semua parameter, validation rules, dan response examples, lihat:
+- [API Contract Documentation (README.md)](./README_API.md) - Dokumentasi lengkap dari project
+
+---
+
+## ⚙️ Environment Setup
+
+### Required Environment Variables
+
+```env
+# Application
+APP_NAME="CookChella API"
+APP_ENV=production
+APP_KEY=base64:...
+APP_DEBUG=false
+APP_URL=https://your-domain.com
+
+# Database
+DB_CONNECTION=pgsql
+DB_HOST=db.your-database-host.com
+DB_PORT=5432
+DB_DATABASE=cookchela_prod
+DB_USERNAME=postgres
+DB_PASSWORD=your_secure_password
+
+# Supabase Storage
+SUPABASE_URL=https://xxxxx.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGc...
+SUPABASE_BUCKET_AVATARS=avatars
+SUPABASE_BUCKET_RECIPES=recipes
+
+# Google OAuth
+GOOGLE_CLIENT_ID=xxxxx.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-xxxxx
+GOOGLE_REDIRECT_URI=${APP_URL}/api/v1/auth/google/callback
+
+# Rate Limiting
+API_RATE_LIMIT=60  # requests per minute
+```
+
+### Supabase Storage Setup
+
+1. Buat project di [Supabase](https://supabase.com)
+2. Buat 2 buckets:
+   - `avatars` - untuk user profile pictures
+   - `recipes` - untuk recipe images
+3. Set public access untuk kedua buckets
+4. Copy `SUPABASE_URL` dan `SUPABASE_SERVICE_ROLE_KEY` ke `.env`
+
+---
+
+## 🧪 Testing
+
+### Run Tests
+```bash
+# Run all tests
+php artisan test
+
+# Run specific test
+php artisan test --filter=RecipeTest
+
+# With coverage
+php artisan test --coverage
+```
+
+### Code Style
+```bash
+# Check code style
+./vendor/bin/pint --test
+
+# Fix code style
+./vendor/bin/pint
 ```
 
 ---
 
-## 8. Rate Limiting
+## 🚢 Deployment
 
-| Endpoint Type | Limit | Window |
-|--------------|-------|--------|
-| Auth endpoints | 10 requests | per minute |
-| General endpoints | 60 requests | per minute |
-| Search endpoints | 30 requests | per minute |
-| Upload endpoints | 10 requests | per minute |
+### Production Checklist
 
-**Rate Limit Headers:**
+- [ ] Set `APP_ENV=production`
+- [ ] Set `APP_DEBUG=false`
+- [ ] Generate production app key: `php artisan key:generate`
+- [ ] Run migrations: `php artisan migrate --force`
+- [ ] Optimize configurations:
+  ```bash
+  php artisan config:cache
+  php artisan route:cache
+  php artisan view:cache
+  ```
+- [ ] Setup queue worker (jika menggunakan jobs)
+- [ ] Configure rate limiting
+- [ ] Setup SSL/HTTPS
+- [ ] Configure CORS headers
 
-```http
-X-RateLimit-Limit: 60
-X-RateLimit-Remaining: 59
-X-RateLimit-Reset: 1701234567
+### Deployment Platforms
+
+#### Render.com (Recommended)
+```yaml
+# render.yaml
+services:
+  - type: web
+    name: cookchela-api
+    env: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_KEY
+        sync: false
+      - key: DB_CONNECTION
+        value: pgsql
+```
+
+#### Docker Deployment
+```bash
+# Build production image
+docker build -t cookchela-api:latest .
+
+# Run with environment file
+docker run -d \
+  --name cookchela-api \
+  -p 8080:8080 \
+  --env-file .env.production \
+  cookchela-api:latest
 ```
 
 ---
 
-## Appendix: Supabase Storage URLs
+## 📈 Project Highlights
 
-### URL Patterns
+### Technical Excellence
+- ✅ **Modern PHP Stack** - Laravel 12, PHP 8.2+, latest dependencies
+- ✅ **Clean Code** - PSR standards, service layer pattern, SOLID principles
+- ✅ **RESTful API Design** - Consistent endpoints, proper HTTP methods & status codes
+- ✅ **Security Best Practices** - Token auth, input validation, SQL injection protection
+- ✅ **Cloud Integration** - Supabase storage for scalable file handling
+- ✅ **Production Ready** - Docker support, error handling, logging
 
-| Type | URL Pattern |
-|------|-------------|
-| Avatar | `https://{project}.supabase.co/storage/v1/object/public/avatars/{user_id}/{filename}` |
-| Recipe Image | `https://{project}.supabase.co/storage/v1/object/public/recipes/{recipe_id}/{filename}` |
+### Features yang Stand Out
+- 🎯 **Advanced Search** - Full-text search + ingredient-based search
+- 🎯 **Social Features** - Follow system, likes, bookmarks
+- 🎯 **OAuth Integration** - Google login untuk better UX
+- 🎯 **Optimized Queries** - Eager loading, pagination, indexing
+- 🎯 **API Versioning** - Prepared for future updates
 
-### Image Transformations (via Supabase)
+### Dokumentasi & Developer Experience
+- 📚 **Comprehensive API Docs** - Semua endpoints terdokumentasi
+- 📚 **Clear Code Comments** - Self-documenting code
+- 📚 **Easy Setup** - `.env.example`, migration seeds
+- 📚 **Consistent Response** - Unified JSON format
 
-```
-// Resize
-? width=300&height=300
+---
 
-// Quality
-?quality=80
+## 🤝 Kontribusi
 
-// Format
-?format=webp
-```
+Kontribusi sangat diterima! Jika Anda ingin berkontribusi:
 
-**Example:**
-```
-https://xxxx.supabase.co/storage/v1/object/public/recipes/1/image.jpg?width=300&height=300&quality=80
-```
+1. Fork repository ini
+2. Buat branch untuk feature baru (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push ke branch (`git push origin feature/AmazingFeature`)
+5. Buat Pull Request
 
+### Coding Standards
+- Follow PSR-12 coding standards
+- Write meaningful commit messages
+- Add tests for new features
+- Update documentation
+
+---
+
+## 👨‍💻 Author
+
+**Alfan**
+- GitHub: [@Alfan345](https://github.com/Alfan345)
+- LinkedIn: [Your LinkedIn](https://linkedin.com/in/yourprofile) _(optional)_
+- Portfolio: [Your Website](https://yourwebsite.com) _(optional)_
+
+---
+
+## 📄 Lisensi
+
+Proyek ini dilisensikan di bawah [MIT License](LICENSE).
+
+---
+
+## 🙏 Acknowledgments
+
+- [Laravel](https://laravel.com) - The PHP framework for web artisans
+- [Supabase](https://supabase.com) - Open source Firebase alternative
+- [Render](https://render.com) - Cloud hosting platform
+
+---
+
+<div align="center">
+
+**⭐ Jika proyek ini bermanfaat, jangan lupa berikan star!**
+
+Made with ❤️ by [Alfan](https://github.com/Alfan345)
+
+</div>
